@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mavazihub-postgres
+    environment:
+      POSTGRES_DB: mavazihub
+      POSTGRES_USER: mavazihub_user
+      POSTGRES_PASSWORD: mavazihub_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - mavazihub_postgres_data:/var/lib/postgresql/data
+    networks:
+      - mavazihub-network
+
+volumes:
+  mavazihub_postgres_data:
+
+networks:
+  mavazihub-network:
+    driver: bridge
