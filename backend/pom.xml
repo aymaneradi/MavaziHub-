@@ -93,6 +93,11 @@
 			<version>12.7.0</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+			<version>12.6.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
