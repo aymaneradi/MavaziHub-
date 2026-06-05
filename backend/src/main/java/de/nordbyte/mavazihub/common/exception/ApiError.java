@@ -6,7 +6,7 @@ public record ApiError(
         LocalDateTime timestamp,
         int status,
         String error,
-        String messsage,
+        String message,
         String path
 ) {
 }

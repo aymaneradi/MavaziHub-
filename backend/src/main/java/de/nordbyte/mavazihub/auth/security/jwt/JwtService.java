@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -20,6 +21,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpiration()))
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -33,7 +35,7 @@ public class JwtService {
                 .compact();
     }
 
-    public  String extractusername (String token){
+    public  String extractUsername (String token){
         return extractClaims(token)
                 .getSubject();
     }
@@ -42,6 +44,17 @@ public class JwtService {
         return extractClaims(token)
                 .getExpiration()
                 .after(new Date());
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails){
+        String username = extractUsername(token);
+
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractClaims(token).getExpiration()
+                .before(new Date());
     }
 
     private Claims extractClaims(String token) {
