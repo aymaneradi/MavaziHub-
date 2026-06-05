@@ -74,11 +74,11 @@ public class AuthServiceImpl implements AuthService{
                 ));
 
         String accessToken = jwtService.generateAccessToken(user.getEmail());
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
         return  new AuthResponse(
                 accessToken,
-                refreshToken,
+                refreshToken.getToken(),
                 jwtProperties.getAccessTokenExpiration()
         );
     }

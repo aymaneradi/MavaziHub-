@@ -26,24 +26,9 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(String email){
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpiration()))
-                .signWith(getSigningKey())
-                .compact();
-    }
-
     public  String extractUsername (String token){
         return extractClaims(token)
                 .getSubject();
-    }
-
-    public boolean isTokenvalid(String token){
-        return extractClaims(token)
-                .getExpiration()
-                .after(new Date());
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails){
@@ -66,7 +51,7 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
+        byte[] keyBytes = Decoders.BASE64URL.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
