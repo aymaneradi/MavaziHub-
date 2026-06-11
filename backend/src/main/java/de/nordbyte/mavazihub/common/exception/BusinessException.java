@@ -1,4 +1,4 @@
-package de.nordbyte.mavazihub.common.execption;
+package de.nordbyte.mavazihub.common.exception;
 
 /**
  * Beschreibt fachliche Fehler während der Verarbeitung.

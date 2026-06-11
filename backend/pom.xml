@@ -1,76 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.14</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
+
 	<groupId>de.nordbyte</groupId>
 	<artifactId>mavazihub-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+
+	<!-- AKTUALISIERT: Name und Beschreibung ergänzt -->
+	<name>MavaziHub Backend</name>
+	<description>Backend für die E-Commerce-Plattform MavaziHub der Tamu Fashion GmbH</description>
+
 	<properties>
+		<!-- BEIBEHALTEN: Java 17 ist stabil und reicht für Spring Boot 3.x -->
 		<java.version>17</java.version>
+
+		<!-- AKTUALISIERT: zentrale Version für JJWT -->
+		<jjwt.version>0.12.6</jjwt.version>
 	</properties>
+
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+
+		<!-- ========================================================= -->
+		<!-- KERNFUNKTIONEN -->
+		<!-- ========================================================= -->
+
+		<!-- REST-API, eingebetteter Webserver, JSON-Verarbeitung mit Jackson -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- JPA/Hibernate für Datenbankzugriff über Entities und Repositories -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<!-- Validierung von DTOs, z. B. @NotBlank, @Email, @Size -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- Spring Security für Authentifizierung, Rollen und Zugriffsschutz -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+
+		<!-- ========================================================= -->
+		<!-- DATENBANK -->
+		<!-- ========================================================= -->
+
+		<!-- PostgreSQL-Treiber für die Verbindung zur PostgreSQL-Datenbank -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+
+		<!-- ========================================================= -->
+		<!-- JWT / TOKEN-BASIERTE AUTHENTIFIZIERUNG -->
+		<!-- ========================================================= -->
+
+		<!-- AKTUALISIERT: JJWT API zum Erzeugen und Lesen von JWT-Tokens -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>${jjwt.version}</version>
+		</dependency>
+
+		<!-- AKTUALISIERT: JJWT Implementierung zur Laufzeit -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- AKTUALISIERT: JSON-Verarbeitung für JJWT über Jackson -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+
+		<!-- ========================================================= -->
+		<!-- ENTWICKLUNGSKOMFORT -->
+		<!-- ========================================================= -->
+
+		<!-- Lombok reduziert Boilerplate-Code, z. B. Getter, Setter, Builder -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- AKTUALISIERT: Hot Reload während der Entwicklung -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+
+
+		<!-- ========================================================= -->
+		<!-- TESTS -->
+		<!-- ========================================================= -->
+
+		<!-- JUnit 5, Mockito, AssertJ und Spring-Testwerkzeuge -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Testunterstützung für Spring Security, z. B. @WithMockUser -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- AKTUALISIERT: In-Memory-Datenbank für spätere Unit-/Integrationstests -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
+
+			<!-- Spring Boot Plugin zum Bauen und Starten der Anwendung -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -83,42 +162,21 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- AKTUALISIERT: explizite Lombok-Unterstützung beim Maven-Compile -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-				</executions>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
 
