@@ -45,11 +45,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                        // Admin-/Mitarbeiterbereich für Produktverwaltung
-                        .requestMatchers("/api/admin/categories/**").hasAnyAuthority("ROLE_EMPLOYEE", "ROLE_ADMIN")
-                        .requestMatchers("/api/admin/products/**").hasAnyAuthority("ROLE_EMPLOYEE", "ROLE_ADMIN")
+                        //Employee
+                        .requestMatchers("/api/admin/categories/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_EMPLOYEE")
+                        .requestMatchers("/api/admin/products/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_EMPLOYEE")
 
-                        // Alle anderen Requests brauchen Login
+                        //Admin
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
