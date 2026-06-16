@@ -4,6 +4,7 @@ import de.nordbyte.mavazihub.auth.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -33,7 +34,22 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+
+                        // Authentifizierung
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Diagnose
+                        .requestMatchers(HttpMethod.GET, "/api/health/**").permitAll()
+
+                        // Öffentlicher Shop-Bereich
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                        // Admin-/Mitarbeiterbereich für Produktverwaltung
+                        .requestMatchers("/api/admin/categories/**").hasAnyAuthority("ROLE_EMPLOYEE", "ROLE_ADMIN")
+                        .requestMatchers("/api/admin/products/**").hasAnyAuthority("ROLE_EMPLOYEE", "ROLE_ADMIN")
+
+                        // Alle anderen Requests brauchen Login
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

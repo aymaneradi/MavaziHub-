@@ -24,7 +24,7 @@
 		<java.version>17</java.version>
 
 		<!-- AKTUALISIERT: zentrale Version für JJWT -->
-		<jjwt.version>0.12.6</jjwt.version>
+		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
 
 	<dependencies>
