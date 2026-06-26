@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers("/api/cart/**").authenticated()
 
                         //Employee
                         .requestMatchers("/api/admin/categories/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_EMPLOYEE")
