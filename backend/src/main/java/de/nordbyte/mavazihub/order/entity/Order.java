@@ -1,11 +1,8 @@
 package de.nordbyte.mavazihub.order.entity;
 
-import de.nordbyte.mavazihub.user.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import lombok.Getter;
+import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,57 +13,42 @@ import java.util.UUID;
 @Table(name = "orders")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Order {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 40)
-    private String orderNumber;
+    @Column(name = "customer_id", nullable = false)
+    private UUID customerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    private User customer;
+    @Column(nullable = false, length = 50)
+    private String status;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private OrderStatus status;
+    @Column(name = "payment_status", nullable = false, length = 50)
+    private String paymentStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private PaymentStatus paymentStatus;
-
-    @Column(length = 80)
-    private String mockTransactionId;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal totalAmount;
-
-    @Column(nullable = false, length = 200)
-    private String recipientName;
-
-    @Column(nullable = false, length = 200)
+    // Lieferadresse als Snapshot (ADR-05)
+    @Column(nullable = false, length = 255)
     private String street;
 
-    @Column(nullable = false, length = 20)
-    private String postalCode;
+    @Column(name = "zip_code", nullable = false, length = 20)
+    private String zipCode;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 100)
     private String city;
 
-    @Column(nullable = false, length = 120)
-    private String country;
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPrice;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(name = "order_date", nullable = false, updatable = false)
+    private LocalDateTime orderDate;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        this.orderDate = LocalDateTime.now();
+    }
 }

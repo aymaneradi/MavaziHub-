@@ -1,8 +1,5 @@
 package de.nordbyte.mavazihub.order.dto;
 
-import de.nordbyte.mavazihub.order.entity.OrderStatus;
-import de.nordbyte.mavazihub.order.entity.PaymentStatus;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,18 +7,14 @@ import java.util.UUID;
 
 public record OrderDetailResponse(
         UUID id,
-        String orderNumber,
-        OrderStatus status,
-        PaymentStatus paymentStatus,
-        String mockTransactionId,
-        BigDecimal totalAmount,
-        String recipientName,
+        UUID customerId,
+        String status,
+        String paymentStatus,
+        BigDecimal totalPrice,
         String street,
-        String postalCode,
+        String zipCode,
         String city,
-        String country,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        LocalDateTime orderDate,
         List<OrderItemResponse> items
 ) {
 }
