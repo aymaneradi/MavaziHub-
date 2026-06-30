@@ -7,10 +7,8 @@ public record OrderItemResponse(
         UUID id,
         UUID productId,
         String productName,
-        String variantSize,
-        String variantColor,
         BigDecimal unitPrice,
-        int quantity,
+        Integer quantity,
         int returnableQuantity
 ) {
 }
