@@ -22,7 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderRepository    orderRepository;
+    private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
 
     @Transactional
@@ -126,5 +126,30 @@ public class OrderService {
                 .map(this::toResponse)
                 .toList();
     }
+    /**
+     * Alle Bestellungen abrufen (Admin).
+     * GET /api/admin/orders
+     */
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
+    /**
+     * Bestellstatus aktualisieren (Admin).
+     * PATCH /api/admin/orders/{id}/status
+     * <p>
+     * Mögliche Status: PROCESSING, PAID, SHIPPED, DELIVERED, CANCELLED
+     */
+    @Transactional
+    public Optional<OrderResponse> updateOrderStatus(UUID id, String newStatus) {
+        return orderRepository.findById(id).map(order -> {
+            order.setStatus(newStatus);
+            Order saved = orderRepository.save(order);
+            return toResponse(saved);
+        });
+    }
 }
