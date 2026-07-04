@@ -78,4 +78,18 @@ public class Product {
     public void publish() {
         this.active = true;
     }
+
+    /**
+     * Prüft, ob genügend Lagerbestand vorhanden ist.
+     */
+    public boolean hasEnoughStock(int quantity) {
+        return stockQuantity >= quantity;
+    }
+
+    /**
+     * Reduziert den Lagerbestand um die angegebene Menge.
+     */
+    public void reduceStock(int quantity) {
+        this.stockQuantity -= quantity;
+    }
 }

@@ -2,6 +2,7 @@ package de.nordbyte.mavazihub.user.admin.controller;
 
 import de.nordbyte.mavazihub.user.admin.dto.AdminUserResponse;
 import de.nordbyte.mavazihub.user.admin.dto.AssignRoleRequest;
+import de.nordbyte.mavazihub.user.admin.dto.UpdateUserRolesRequest;
 import de.nordbyte.mavazihub.user.admin.service.AdminUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,14 @@ public class AdminUserController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{id}/roles")
+    public ResponseEntity<AdminUserResponse> updateRoles(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRolesRequest request
+    ){
+        return ResponseEntity.ok(adminUserService.updateRoles(id, request.roles()));
+    }
+
     @PatchMapping("/{id}/lock")
     public ResponseEntity<Void> lockAccount(@PathVariable UUID id){
         adminUserService.lockAccount(id);
@@ -48,6 +57,18 @@ public class AdminUserController {
     @PatchMapping("/{id}/unlock")
     public ResponseEntity<Void> unlockAccount(@PathVariable UUID id){
         adminUserService.unlockAccount(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/disable")
+    public ResponseEntity<Void> disableUser(@PathVariable UUID id){
+        adminUserService.disableUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}/enable")
+    public ResponseEntity<Void> enableUser(@PathVariable UUID id){
+        adminUserService.enableUser(id);
         return ResponseEntity.ok().build();
     }
 

@@ -67,7 +67,6 @@ class OrderHistoryServiceTest {
         OrderDetailResponse result = orderHistoryService.getOrderDetails(order.getId(), customer);
 
         assertThat(result.id()).isEqualTo(order.getId());
-        assertThat(result.customerId()).isEqualTo(customer.getId());
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().get(0).quantity()).isEqualTo(3);
         assertThat(result.items().get(0).returnableQuantity()).isEqualTo(2);
@@ -134,7 +133,7 @@ class OrderHistoryServiceTest {
         OrderItem item = new OrderItem();
         item.setId(orderItemId);
         item.setOrder(order);
-        item.setProductId(UUID.randomUUID());
+        item.setProductId(1L);
         item.setProductName("Mavazi Hoodie");
         item.setUnitPrice(BigDecimal.valueOf(49.99));
         item.setQuantity(quantity);

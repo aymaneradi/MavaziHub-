@@ -1,17 +1,20 @@
 package de.nordbyte.mavazihub.cart.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
-import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter
 public class CartItemRequest {
 
-    private UUID customerId;
-    private UUID productId;
-    private String productName;
-    private BigDecimal unitPrice;
+    @NotNull(message = "Produkt-ID ist Pflicht")
+    private Long productId;
+
+    private Long variantId;
+
+    @NotNull(message = "Menge ist Pflicht")
+    @Positive(message = "Menge muss größer als 0 sein")
     private Integer quantity;
 }

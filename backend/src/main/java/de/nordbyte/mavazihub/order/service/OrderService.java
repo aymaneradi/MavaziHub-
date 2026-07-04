@@ -2,12 +2,17 @@ package de.nordbyte.mavazihub.order.service;
 
 import de.nordbyte.mavazihub.cart.entity.CartItem;
 import de.nordbyte.mavazihub.cart.repository.CartItemRepository;
+import de.nordbyte.mavazihub.common.exception.BusinessException;
+import de.nordbyte.mavazihub.common.exception.ResourceNotFoundException;
 import de.nordbyte.mavazihub.order.dto.OrderRequest;
 import de.nordbyte.mavazihub.order.dto.OrderResponse;
 import de.nordbyte.mavazihub.order.entity.Order;
 import de.nordbyte.mavazihub.order.entity.OrderItem;
 import de.nordbyte.mavazihub.order.repository.OrderRepository;
+import de.nordbyte.mavazihub.product.service.ProductService;
+import de.nordbyte.mavazihub.product.service.ProductVariantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,18 +29,18 @@ public class OrderService {
 
     private final OrderRepository    orderRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductService productService;
+    private final ProductVariantService productVariantService;
 
     @Transactional
-    public OrderResponse processOrder(OrderRequest request) {
-
-        UUID customerId = request.getCustomerId();
+    public OrderResponse processOrder(UUID customerId, OrderRequest request) {
 
         // SCHRITT 1: Warenkorb laden
         List<CartItem> cartItems = cartItemRepository.findByCustomerId(customerId);
 
         // SCHRITT 2: Warenkorb prüfen
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Warenkorb von Kunde " + customerId + " ist leer.");
+            throw new BusinessException("Warenkorb ist leer.");
         }
 
         // SCHRITT 3: Order erstellen
@@ -59,9 +64,12 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setOrder(order); // Wichtig für JPA Fremdschlüssel-Mapping!
             item.setProductId(cartItem.getProductId());
+            item.setVariantId(cartItem.getVariantId());
             item.setProductName(cartItem.getProductName());
             item.setUnitPrice(cartItem.getUnitPrice());
             item.setQuantity(cartItem.getQuantity());
+
+            reduceStock(cartItem);
 
             order.getItems().add(item);
 
@@ -90,6 +98,28 @@ public class OrderService {
         return orderRepository.findById(id).map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "orderDate"))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(UUID id, String status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bestellung nicht gefunden mit ID: " + id));
+
+        order.setStatus(status.trim().toUpperCase());
+        return toResponse(orderRepository.save(order));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<OrderResponse> getOrderById(UUID id, UUID customerId) {
+        return orderRepository.findByIdAndCustomerId(id, customerId).map(this::toResponse);
+    }
+
     private OrderResponse toResponse(Order order) {
         OrderResponse res = new OrderResponse();
         res.setId(order.getId());
@@ -104,6 +134,7 @@ public class OrderService {
                 OrderResponse.ItemDto dto = new OrderResponse.ItemDto();
                 dto.setId(i.getId());
                 dto.setProductId(i.getProductId());
+                dto.setVariantId(i.getVariantId());
                 dto.setProductName(i.getProductName());
                 dto.setUnitPrice(i.getUnitPrice());
                 dto.setQuantity(i.getQuantity());
@@ -125,6 +156,19 @@ public class OrderService {
         return orders.stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    private void reduceStock(CartItem cartItem) {
+        if (cartItem.getVariantId() != null) {
+            productVariantService.reduceStock(
+                    cartItem.getProductId(),
+                    cartItem.getVariantId(),
+                    cartItem.getQuantity()
+            );
+            return;
+        }
+
+        productService.reduceStock(cartItem.getProductId(), cartItem.getQuantity());
     }
 
 }

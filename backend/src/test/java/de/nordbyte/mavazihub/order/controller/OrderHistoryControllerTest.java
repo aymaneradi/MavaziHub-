@@ -62,7 +62,6 @@ class OrderHistoryControllerTest {
         when(orderHistoryService.getOrderDetails(eq(orderId), eq(customer))).thenReturn(
                 new OrderDetailResponse(
                         orderId,
-                        customer.getId(),
                         "PAID",
                         "PAID",
                         BigDecimal.valueOf(99.99),
@@ -97,7 +96,8 @@ class OrderHistoryControllerTest {
     private static OrderItemResponse item(UUID itemId, int returnableQuantity) {
         return new OrderItemResponse(
                 itemId,
-                UUID.randomUUID(),
+                1L,
+                null,
                 "Mavazi Hoodie",
                 BigDecimal.valueOf(49.99),
                 2,

@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Stellt geschützte Endpunkte für die Kategorieverwaltung bereit.
  */
@@ -19,6 +21,22 @@ import org.springframework.web.bind.annotation.*;
 public class AdminCategoryController {
 
     private final CategoryService categoryService;
+
+    /**
+     * Gibt alle Kategorien für die Administration zurück.
+     */
+    @GetMapping
+    public ResponseEntity<List<CategoryResponse>> getCategories() {
+        return ResponseEntity.ok(categoryService.getAllCategories());
+    }
+
+    /**
+     * Gibt eine einzelne Kategorie für die Administration zurück.
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponse> getCategory(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategory(id));
+    }
 
     /**
      * Legt eine neue Kategorie an.

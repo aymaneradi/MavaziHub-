@@ -10,7 +10,6 @@ import java.util.UUID;
 @Setter
 public class CartResponse {
 
-    private UUID customerId;
     private List<CartItemDto> items;
     private BigDecimal totalPrice;
 
@@ -18,7 +17,8 @@ public class CartResponse {
     @Setter
     public static class CartItemDto {
         private UUID id;
-        private UUID productId;
+        private Long productId;
+        private Long variantId;
         private String productName;
         private BigDecimal unitPrice;
         private Integer quantity;

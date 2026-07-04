@@ -21,7 +21,8 @@ public class OrderResponse {
     @Setter
     public static class ItemDto {
         private UUID id;
-        private UUID productId;
+        private Long productId;
+        private Long variantId;
         private String productName;
         private BigDecimal unitPrice;
         private Integer quantity;

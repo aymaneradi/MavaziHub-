@@ -1,11 +1,14 @@
 package de.nordbyte.mavazihub.returnrequest.controller;
 
+import de.nordbyte.mavazihub.auth.security.model.CustomerUserDetails;
 import de.nordbyte.mavazihub.returnrequest.dto.ReturnRequestCreateDTO;
 import de.nordbyte.mavazihub.returnrequest.dto.ReturnRequestResponseDTO;
 import de.nordbyte.mavazihub.returnrequest.service.ReturnRequestService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,7 +17,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/returns")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:8080")
 public class ReturnRequestController {
 
     private final ReturnRequestService returnRequestService;
@@ -25,11 +27,11 @@ public class ReturnRequestController {
      */
     @PostMapping
     public ResponseEntity<ReturnRequestResponseDTO> requestReturn(
-            @RequestParam UUID customerId,
-            @RequestBody ReturnRequestCreateDTO dto) {
+            @Valid @RequestBody ReturnRequestCreateDTO dto,
+            Authentication authentication) {
 
         ReturnRequestResponseDTO response =
-                returnRequestService.requestReturn(customerId, dto);
+                returnRequestService.requestReturn(currentCustomerId(authentication), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -39,10 +41,10 @@ public class ReturnRequestController {
      */
     @GetMapping("/my")
     public ResponseEntity<List<ReturnRequestResponseDTO>> getMyReturns(
-            @RequestParam UUID customerId) {
+            Authentication authentication) {
 
         List<ReturnRequestResponseDTO> returns =
-                returnRequestService.getMyReturns(customerId);
+                returnRequestService.getMyReturns(currentCustomerId(authentication));
         return ResponseEntity.ok(returns);
     }
 
@@ -53,10 +55,15 @@ public class ReturnRequestController {
     @GetMapping("/{id}")
     public ResponseEntity<ReturnRequestResponseDTO> getReturnById(
             @PathVariable UUID id,
-            @RequestParam UUID customerId) {
+            Authentication authentication) {
 
-        return returnRequestService.getReturnById(id, customerId)
+        return returnRequestService.getReturnById(id, currentCustomerId(authentication))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private UUID currentCustomerId(Authentication authentication) {
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
+        return userDetails.getUser().getId();
     }
 }

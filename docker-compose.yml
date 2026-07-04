@@ -3,11 +3,11 @@ services:
     image: postgres:16-alpine
     container_name: mavazihub-postgres
     environment:
-      POSTGRES_DB: mavazihub
-      POSTGRES_USER: mavazihub_user
-      POSTGRES_PASSWORD: mavazihub_password
+      POSTGRES_DB: ${POSTGRES_DB:-mavazihub}
+      POSTGRES_USER: ${POSTGRES_USER:-mavazihub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mavazihub_password}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - mavazihub_postgres_data:/var/lib/postgresql/data
     networks:

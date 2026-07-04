@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public record OrderDetailResponse(
         UUID id,
-        UUID customerId,
         String status,
         String paymentStatus,
         BigDecimal totalPrice,

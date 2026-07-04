@@ -9,7 +9,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 @Service
@@ -51,7 +53,27 @@ public class JwtService {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64URL.decode(jwtProperties.getSecretKey());
+        byte[] keyBytes;
+
+        try {
+            keyBytes = Decoders.BASE64URL.decode(jwtProperties.getSecretKey());
+        } catch (IllegalArgumentException ex) {
+            keyBytes = jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8);
+        }
+
+        if (keyBytes.length < 32) {
+            keyBytes = sha256(jwtProperties.getSecretKey());
+        }
+
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private byte[] sha256(String value) {
+        try {
+            return MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 algorithm is not available", ex);
+        }
     }
 }

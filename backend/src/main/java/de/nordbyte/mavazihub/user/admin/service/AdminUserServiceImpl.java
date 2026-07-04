@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,17 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     @Override
+    public AdminUserResponse updateRoles(UUID userId, Set<RoleName> roles) {
+        User user = findUser(userId);
+        Set<Role> resolvedRoles = roles.stream()
+                .map(this::findRole)
+                .collect(Collectors.toSet());
+
+        user.setRoles(resolvedRoles);
+        return toResponse(userRepository.save(user));
+    }
+
+    @Override
     public void lockAccount(UUID userId) {
         User user = findUser(userId);
         user.setAccountLocked(true);
@@ -67,6 +79,20 @@ public class AdminUserServiceImpl implements AdminUserService {
     public void unlockAccount(UUID userId) {
         User user = findUser(userId);
         user.setAccountLocked(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disableUser(UUID userId) {
+        User user = findUser(userId);
+        user.setEnabled(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void enableUser(UUID userId) {
+        User user = findUser(userId);
+        user.setEnabled(true);
         userRepository.save(user);
     }
 

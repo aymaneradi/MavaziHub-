@@ -1,5 +1,7 @@
 package de.nordbyte.mavazihub.returnrequest.service;
 
+import de.nordbyte.mavazihub.common.exception.BusinessException;
+import de.nordbyte.mavazihub.common.exception.ResourceNotFoundException;
 import de.nordbyte.mavazihub.order.entity.Order;
 import de.nordbyte.mavazihub.order.entity.OrderItem;
 import de.nordbyte.mavazihub.order.repository.OrderRepository;
@@ -10,6 +12,7 @@ import de.nordbyte.mavazihub.returnrequest.entity.ReturnRequest;
 import de.nordbyte.mavazihub.returnrequest.repository.ReturnItemRepository;
 import de.nordbyte.mavazihub.returnrequest.repository.ReturnRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,16 +37,16 @@ public class ReturnRequestService {
     @Transactional
     public ReturnRequestResponseDTO requestReturn(UUID customerId, ReturnRequestCreateDTO dto) {
         Order order = orderRepository.findById(dto.getOrderId())
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Bestellung " + dto.getOrderId() + " wurde nicht gefunden."));
 
         if (!order.getCustomerId().equals(customerId)) {
-            throw new RuntimeException(
-                    "Ruecksendungen sind nur fuer eigene Bestellungen moeglich.");
+            throw new ResourceNotFoundException(
+                    "Bestellung " + dto.getOrderId() + " wurde nicht gefunden.");
         }
 
         if (dto.getItems() == null || dto.getItems().isEmpty()) {
-            throw new RuntimeException(
+            throw new BusinessException(
                     "Es muss mindestens ein Artikel fuer die Ruecksendung ausgewaehlt werden.");
         }
 
@@ -53,18 +56,18 @@ public class ReturnRequestService {
 
         for (ReturnRequestCreateDTO.ReturnItemDTO itemDto : dto.getItems()) {
             if (itemDto.getOrderItemId() == null) {
-                throw new RuntimeException("Es muss ein Bestellartikel angegeben werden.");
+                throw new BusinessException("Es muss ein Bestellartikel angegeben werden.");
             }
 
             OrderItem orderItem = orderItemsById.get(itemDto.getOrderItemId());
             if (orderItem == null) {
-                throw new RuntimeException(
+                throw new BusinessException(
                         "Artikel " + itemDto.getOrderItemId() +
                                 " gehoert nicht zu Bestellung " + dto.getOrderId() + ".");
             }
 
             if (itemDto.getQuantity() == null || itemDto.getQuantity() <= 0) {
-                throw new RuntimeException(
+                throw new BusinessException(
                         "Ungueltige Ruecksendemenge fuer Artikel '" +
                                 orderItem.getProductName() + "'. Angefordert: " + itemDto.getQuantity() + ".");
             }
@@ -76,7 +79,7 @@ public class ReturnRequestService {
             int returnableQuantity = orderItem.getQuantity() - alreadyReturned;
 
             if (requestedTotal > returnableQuantity) {
-                throw new RuntimeException(
+                throw new BusinessException(
                         "Ungueltige Ruecksendemenge fuer Artikel '" +
                                 orderItem.getProductName() + "'. Noch ruecksendbar: " +
                                 Math.max(0, returnableQuantity) + ", angefordert: " + requestedTotal + ".");
@@ -118,6 +121,27 @@ public class ReturnRequestService {
         return returnRequestRepository.findById(id)
                 .filter(r -> r.getCustomerId().equals(customerId))
                 .map(this::toResponse);
+    }
+
+    public List<ReturnRequestResponseDTO> getAllReturns() {
+        return returnRequestRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public Optional<ReturnRequestResponseDTO> getReturnById(UUID id) {
+        return returnRequestRepository.findById(id)
+                .map(this::toResponse);
+    }
+
+    @Transactional
+    public ReturnRequestResponseDTO updateStatus(UUID id, String status) {
+        ReturnRequest returnRequest = returnRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ruecksendung nicht gefunden mit ID: " + id));
+
+        returnRequest.setStatus(status.trim().toUpperCase());
+        return toResponse(returnRequestRepository.save(returnRequest));
     }
 
     private ReturnRequestResponseDTO toResponse(ReturnRequest entity) {

@@ -34,6 +34,13 @@ public class CategoryService {
     }
 
     /**
+     * Gibt eine Kategorie nach ID zurück.
+     */
+    public CategoryResponse getCategory(Long id) {
+        return toResponse(getCategoryEntityOrThrow(id));
+    }
+
+    /**
      * Legt eine neue Kategorie an.
      */
     @Transactional

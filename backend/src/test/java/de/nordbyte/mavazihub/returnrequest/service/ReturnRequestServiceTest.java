@@ -118,7 +118,7 @@ class ReturnRequestServiceTest {
 
         assertThatThrownBy(() -> returnRequestService.requestReturn(otherCustomerId, request))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("nur fuer eigene Bestellungen");
+                .hasMessageContaining("wurde nicht gefunden");
     }
 
     @Test
@@ -165,7 +165,7 @@ class ReturnRequestServiceTest {
         OrderItem item = new OrderItem();
         item.setId(orderItemId);
         item.setOrder(order);
-        item.setProductId(UUID.randomUUID());
+        item.setProductId(1L);
         item.setProductName("Mavazi Hoodie");
         item.setUnitPrice(BigDecimal.valueOf(49.99));
         item.setQuantity(quantity);

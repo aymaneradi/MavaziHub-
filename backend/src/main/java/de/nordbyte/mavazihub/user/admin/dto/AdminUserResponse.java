@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record AdminUserResponse(
         UUID id,
-        String firtsname,
+        String firstname,
         String lastname,
         String email,
         String phoneNumber,

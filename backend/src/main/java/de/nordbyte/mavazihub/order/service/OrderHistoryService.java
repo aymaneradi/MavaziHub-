@@ -65,7 +65,6 @@ public class OrderHistoryService {
     private OrderDetailResponse toDetailResponse(Order order) {
         return new OrderDetailResponse(
                 order.getId(),
-                order.getCustomerId(),
                 order.getStatus(),
                 order.getPaymentStatus(),
                 order.getTotalPrice(),
@@ -87,6 +86,7 @@ public class OrderHistoryService {
         return new OrderItemResponse(
                 item.getId(),
                 item.getProductId(),
+                item.getVariantId(),
                 item.getProductName(),
                 item.getUnitPrice(),
                 item.getQuantity(),

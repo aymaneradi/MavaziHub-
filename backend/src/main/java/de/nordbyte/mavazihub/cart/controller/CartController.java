@@ -1,10 +1,13 @@
 package de.nordbyte.mavazihub.cart.controller;
 
+import de.nordbyte.mavazihub.auth.security.model.CustomerUserDetails;
 import de.nordbyte.mavazihub.cart.dto.CartItemRequest;
 import de.nordbyte.mavazihub.cart.dto.CartResponse;
 import de.nordbyte.mavazihub.cart.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -12,7 +15,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:8080")
 public class CartController {
 
     private final CartService cartService;
@@ -20,10 +22,10 @@ public class CartController {
     /**
      * GET /api/cart
      * Warenkorb eines Kunden anzeigen.
-     * Übergangsweise mit @RequestParam (bis JWT-Integration abgeschlossen).
      */
     @GetMapping
-    public ResponseEntity<CartResponse> getCart(@RequestParam UUID customerId) {
+    public ResponseEntity<CartResponse> getCart(Authentication authentication) {
+        UUID customerId = currentCustomerId(authentication);
         CartResponse response = cartService.getCart(customerId);
         return ResponseEntity.ok(response);
     }
@@ -33,8 +35,11 @@ public class CartController {
      * Produkt in den Warenkorb legen.
      */
     @PostMapping("/items")
-    public ResponseEntity<CartResponse> addToCart(@RequestBody CartItemRequest request) {
-        CartResponse response = cartService.addToCart(request);
+    public ResponseEntity<CartResponse> addToCart(
+            @Valid @RequestBody CartItemRequest request,
+            Authentication authentication
+    ) {
+        CartResponse response = cartService.addToCart(currentCustomerId(authentication), request);
         return ResponseEntity.ok(response);
     }
 
@@ -46,8 +51,9 @@ public class CartController {
     @PutMapping("/items/{itemId}")
     public ResponseEntity<CartResponse> updateQuantity(
             @PathVariable UUID itemId,
-            @RequestParam Integer quantity) {
-        CartResponse response = cartService.updateQuantity(itemId, quantity);
+            @RequestParam Integer quantity,
+            Authentication authentication) {
+        CartResponse response = cartService.updateQuantity(currentCustomerId(authentication), itemId, quantity);
         return ResponseEntity.ok(response);
     }
 
@@ -56,8 +62,11 @@ public class CartController {
      * Einzelnen Artikel aus dem Warenkorb entfernen.
      */
     @DeleteMapping("/items/{itemId}")
-    public ResponseEntity<CartResponse> removeItem(@PathVariable UUID itemId) {
-        CartResponse response = cartService.removeItem(itemId);
+    public ResponseEntity<CartResponse> removeItem(
+            @PathVariable UUID itemId,
+            Authentication authentication
+    ) {
+        CartResponse response = cartService.removeItem(currentCustomerId(authentication), itemId);
         return ResponseEntity.ok(response);
     }
 
@@ -66,8 +75,13 @@ public class CartController {
      * Gesamten Warenkorb leeren.
      */
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@RequestParam UUID customerId) {
-        cartService.clearCart(customerId);
+    public ResponseEntity<Void> clearCart(Authentication authentication) {
+        cartService.clearCart(currentCustomerId(authentication));
         return ResponseEntity.noContent().build();
+    }
+
+    private UUID currentCustomerId(Authentication authentication) {
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
+        return userDetails.getUser().getId();
     }
 }

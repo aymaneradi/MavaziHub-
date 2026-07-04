@@ -190,6 +190,25 @@ public class ProductService {
     }
 
     /**
+     * Reduziert den Lagerbestand eines aktiven Produkts.
+     */
+    @Transactional
+    public Product reduceStock(Long productId, int quantity) {
+        if (quantity <= 0) {
+            throw new BusinessException("Bestellmenge muss größer als 0 sein");
+        }
+
+        Product product = getActiveProductEntityOrThrow(productId);
+
+        if (!product.hasEnoughStock(quantity)) {
+            throw new BusinessException("Nicht genug Lagerbestand für Produkt: " + product.getName());
+        }
+
+        product.reduceStock(quantity);
+        return productRepository.save(product);
+    }
+
+    /**
      * Wandelt eine Product-Entity in ein Übersichts-DTO um.
      */
     private ProductResponse toProductResponse(Product product) {
