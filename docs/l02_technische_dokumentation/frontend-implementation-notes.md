@@ -102,6 +102,14 @@ Die Dateien dazu:
 
 Wichtig: Weil `axiosClient.ts` zentral ist, muessen spaetere API-Dateien wie Warenkorb, Bestellungen und Ruecksendungen den Token nicht selbst setzen.
 
+## Kundenkonto-Navigation
+
+Der Header trennt oeffentliche Shop-Navigation und Kundenkonto-Funktionen:
+
+- Nicht angemeldet: In der Topbar wird `Anmelden` angezeigt.
+- Angemeldet: In der Topbar wird ein Konto-Bereich mit Vorname, `Bestellungen`, `Ruecksendungen` und `Abmelden` angezeigt.
+- Die Hauptnavigation bleibt fuer Shop-Bereiche wie Start, Stoffe, Kleidung, Accessoires und Specials reserviert.
+
 ## Bestellhistorie
 
 Die Seite `OrdersPage.tsx` ist mit dem Backend-Endpunkt `GET /api/me/orders` vorbereitet.
@@ -132,6 +140,39 @@ Zusaetzlich ist `createReturnRequest(orderId, request)` vorbereitet fuer `POST /
 
 Hinweis zum Backend-Contract: `OrderSummaryResponse` verwendet im aktuellen `develop` den Feldnamen `orderDate`. `OrderItemResponse` enthaelt `returnableQuantity`. Deshalb kann das Ruecksendeformular notfalls aus den Bestelldetails ableiten, welche Artikel ruecksendbar sind, falls der separate `returnable-items` Endpunkt in einem Branch noch fehlt.
 Der Endpunkt `GET /api/me/orders/{orderId}/returnable-items` liefert `OrderItemResponse` mit `id`. Im Frontend wird dieses Feld in `returnApi.ts` zu `orderItemId` normalisiert, weil `POST /api/me/orders/{orderId}/returns` pro Item `orderItemId` erwartet.
+
+## Warenkorb
+
+Der Warenkorb ist mit der vorhandenen Cart-API verbunden:
+
+- `GET /api/cart?customerId=...`
+- `POST /api/cart/items`
+- `PUT /api/cart/items/{itemId}?quantity=...`
+- `DELETE /api/cart/items/{itemId}`
+- `DELETE /api/cart?customerId=...`
+
+Die Dateien dazu:
+
+- `types/Cart.ts`: beschreibt Warenkorb und Warenkorbpositionen.
+- `api/cartApi.ts`: kapselt die HTTP-Aufrufe fuer den Warenkorb.
+- `pages/CartPage.tsx`: zeigt Warenkorb, Mengenfelder, Entfernen und Leeren.
+- `pages/ProductDetailPage.tsx`: legt ein Produkt in den Warenkorb.
+- `pages/CheckoutPage.tsx`: erstellt aus dem Warenkorb eine Bestellung ueber `POST /api/cart/checkout`.
+
+Hinweis: Die Cart-API nutzt aktuell noch `customerId` statt `/api/me/cart`. Das Frontend liest deshalb `currentUser.id` aus `AuthContext` und sendet diese ID an die Cart-API. Spaeter sollte das Backend auf JWT-basierte `/api/me/cart` Endpunkte umgestellt werden.
+
+Backend-Contract-Fix: Der Produktkatalog verwendet `Long` fuer `products.id`. Deshalb wurden `cart_item.product_id` und `order_items.product_id` ebenfalls auf `BIGINT`/`Long` angepasst. Vorher war dort `UUID`, wodurch Produktdetailseite und Warenkorb nicht sauber zusammenpassen konnten.
+
+## Checkout
+
+Der Checkout nutzt den vorhandenen Backend-Endpunkt `POST /api/cart/checkout`.
+
+Request-Daten:
+
+- `customerId`: kommt aktuell aus `AuthContext.currentUser.id`.
+- `street`, `zipCode`, `city`: werden im Checkout-Formular eingegeben.
+
+Nach erfolgreicher Bestellung leitet das Frontend auf `/orders/{orderId}` weiter. Der Zahlungsstatus wird im Backend aktuell simuliert.
 
 ## Datenfluss auf der Produktseite
 
@@ -165,7 +206,8 @@ Design-Richtung:
 4. Bestelldetails im Browser gegen das echte Backend testen.
 5. Ruecksendungen und Ruecksendeformular im Browser gegen das echte Backend testen.
 6. DTO-Feldnamen mit dem finalen Backend-Branch abgleichen.
-7. Warenkorb-Seite verbinden, sobald die Cart-API im Backend-Branch vorhanden ist.
+7. Warenkorb und Checkout im Browser gegen das echte Backend testen.
+8. Spaeter Cart-API und Checkout auf `/api/me/...` umstellen.
 
 ## Wichtige Hinweise
 

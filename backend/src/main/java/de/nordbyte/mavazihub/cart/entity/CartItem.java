@@ -20,7 +20,7 @@ public class CartItem {
     private UUID customerId;
 
     @Column(name = "product_id", nullable = false)
-    private UUID productId;
+    private Long productId;
 
     @Column(name = "product_name", nullable = false, length = 255)
     private String productName;

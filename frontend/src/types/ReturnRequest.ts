@@ -23,7 +23,7 @@ export type ReturnRequestItem = {
 
 export type ReturnableOrderItem = {
   orderItemId: string
-  productId?: string | null
+  productId?: number | null
   productName?: string | null
   orderedQuantity?: number | null
   alreadyReturnedQuantity?: number | null

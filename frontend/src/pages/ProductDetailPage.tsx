@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { addCartItem } from '../api/cartApi'
 import { getProductById } from '../api/productApi'
+import { useAuth } from '../auth/AuthContext'
 import type { ProductDetail } from '../types/Product'
 
 const productPalettes = ['sunset', 'gold', 'indigo', 'leaf'] as const
 
 function ProductDetailPage() {
   const { productId } = useParams()
+  const { currentUser, isAuthenticated } = useAuth()
   const numericProductId = Number(productId)
   const [product, setProduct] = useState<ProductDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [cartMessage, setCartMessage] = useState<string | null>(null)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   const palette = useMemo(() => {
     if (!Number.isFinite(numericProductId)) {
@@ -79,6 +84,31 @@ function ProductDetailPage() {
     )
   }
 
+  async function handleAddToCart() {
+    if (!product || !currentUser) {
+      setCartMessage('Bitte melde dich zuerst an.')
+      return
+    }
+
+    setIsAddingToCart(true)
+    setCartMessage(null)
+
+    try {
+      await addCartItem({
+        customerId: currentUser.id,
+        productId: product.id,
+        productName: product.name,
+        unitPrice: product.price,
+        quantity: 1,
+      })
+      setCartMessage('Produkt wurde in den Warenkorb gelegt.')
+    } catch {
+      setCartMessage('Produkt konnte nicht in den Warenkorb gelegt werden.')
+    } finally {
+      setIsAddingToCart(false)
+    }
+  }
+
   return (
     <section className="page-section">
       <Link className="secondary-link" to="/products">
@@ -111,10 +141,17 @@ function ProductDetailPage() {
           </dl>
 
           <div className="product-detail-actions">
-            <button className="primary-button" type="button" disabled={product.stockQuantity === 0}>
-              In den Warenkorb
+            <button
+              className="primary-button"
+              type="button"
+              disabled={product.stockQuantity === 0 || isAddingToCart || !isAuthenticated}
+              onClick={handleAddToCart}
+            >
+              {isAddingToCart ? 'Wird hinzugefuegt...' : 'In den Warenkorb'}
             </button>
+            {!isAuthenticated && <Link to="/login">Zum Login</Link>}
           </div>
+          {cartMessage && <p className="inline-message">{cartMessage}</p>}
         </div>
       </div>
     </section>

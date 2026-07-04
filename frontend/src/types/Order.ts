@@ -13,14 +13,25 @@ export type OrderSummary = {
 
 export type OrderDetail = OrderSummary & {
   items?: OrderItem[]
+  customerId?: string
+  street?: string | null
+  zipCode?: string | null
+  city?: string | null
 }
 
 export type OrderItem = {
   id: string
-  productId?: string | null
+  productId?: number | null
   productName?: string | null
   quantity: number
   unitPrice?: number | null
   totalPrice?: number | null
   returnableQuantity?: number | null
+}
+
+export type CheckoutRequest = {
+  customerId: string
+  street: string
+  zipCode: string
+  city: string
 }

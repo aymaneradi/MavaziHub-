@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import SiteHeader from './components/layout/SiteHeader'
 import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
 import CreateReturnPage from './pages/CreateReturnPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
@@ -22,6 +23,7 @@ function App() {
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:productId" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />

@@ -10,7 +10,7 @@ import java.util.UUID;
 public class CartItemRequest {
 
     private UUID customerId;
-    private UUID productId;
+    private Long productId;
     private String productName;
     private BigDecimal unitPrice;
     private Integer quantity;

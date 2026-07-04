@@ -20,7 +20,7 @@ export async function getReturnableItems(orderId: string): Promise<ReturnableOrd
   const response = await axiosClient.get<
     Array<{
       id: string
-      productId?: string | null
+      productId?: number | null
       productName?: string | null
       quantity: number
       returnableQuantity: number
