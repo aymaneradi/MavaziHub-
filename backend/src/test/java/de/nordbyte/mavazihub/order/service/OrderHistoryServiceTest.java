@@ -134,7 +134,7 @@ class OrderHistoryServiceTest {
         OrderItem item = new OrderItem();
         item.setId(orderItemId);
         item.setOrder(order);
-        item.setProductId(UUID.randomUUID());
+        item.setProductId(1L);
         item.setProductName("Mavazi Hoodie");
         item.setUnitPrice(BigDecimal.valueOf(49.99));
         item.setQuantity(quantity);

@@ -18,7 +18,7 @@ public class CartResponse {
     @Setter
     public static class CartItemDto {
         private UUID id;
-        private UUID productId;
+        private Long productId;
         private String productName;
         private BigDecimal unitPrice;
         private Integer quantity;

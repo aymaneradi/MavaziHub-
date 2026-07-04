@@ -23,7 +23,7 @@ public class OrderItem {
     private Order order;
 
     @Column(name = "product_id", nullable = false)
-    private UUID productId;
+    private Long productId;
 
     // Snapshot-Prinzip (ADR-05)
     @Column(name = "product_name", nullable = false, length = 255)

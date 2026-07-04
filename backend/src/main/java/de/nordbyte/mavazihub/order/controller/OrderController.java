@@ -1,14 +1,15 @@
 package de.nordbyte.mavazihub.order.controller;
 
+import de.nordbyte.mavazihub.auth.security.model.CustomerUserDetails;
 import de.nordbyte.mavazihub.order.dto.OrderRequest;
 import de.nordbyte.mavazihub.order.dto.OrderResponse;
 import de.nordbyte.mavazihub.order.service.OrderService;
+import de.nordbyte.mavazihub.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import de.nordbyte.mavazihub.user.entity.User;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,5 +49,20 @@ public class OrderController {
     public ResponseEntity<OrderResponse> checkout(@RequestBody OrderRequest request) {
         OrderResponse response = orderService.processOrder(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/api/me/cart/checkout")
+    public ResponseEntity<OrderResponse> checkoutMyCart(
+            @RequestBody OrderRequest request,
+            Authentication authentication
+    ) {
+        request.setCustomerId(currentUser(authentication).getId());
+        OrderResponse response = orderService.processOrder(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private User currentUser(Authentication authentication) {
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
+        return userDetails.getUser();
     }
 }

@@ -97,7 +97,7 @@ class OrderHistoryControllerTest {
     private static OrderItemResponse item(UUID itemId, int returnableQuantity) {
         return new OrderItemResponse(
                 itemId,
-                UUID.randomUUID(),
+                1L,
                 "Mavazi Hoodie",
                 BigDecimal.valueOf(49.99),
                 2,
