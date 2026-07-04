@@ -25,7 +25,6 @@ function CheckoutPage() {
 
     try {
       const order = await checkout({
-        customerId: currentUser.id,
         street,
         zipCode,
         city,

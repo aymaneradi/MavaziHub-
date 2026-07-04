@@ -14,7 +14,6 @@ export type CartItem = {
 }
 
 export type AddCartItemRequest = {
-  customerId: string
   productId: number
   productName: string
   unitPrice: number

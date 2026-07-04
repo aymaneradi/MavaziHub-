@@ -95,7 +95,6 @@ function ProductDetailPage() {
 
     try {
       await addCartItem({
-        customerId: currentUser.id,
         productId: product.id,
         productName: product.name,
         unitPrice: product.price,

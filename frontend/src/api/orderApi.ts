@@ -12,6 +12,6 @@ export async function getOrderById(orderId: string): Promise<OrderDetail> {
 }
 
 export async function checkout(request: CheckoutRequest): Promise<OrderDetail> {
-  const response = await axiosClient.post<OrderDetail>('/cart/checkout', request)
+  const response = await axiosClient.post<OrderDetail>('/me/cart/checkout', request)
   return response.data
 }

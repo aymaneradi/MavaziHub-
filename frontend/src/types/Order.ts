@@ -30,7 +30,6 @@ export type OrderItem = {
 }
 
 export type CheckoutRequest = {
-  customerId: string
   street: string
   zipCode: string
   city: string

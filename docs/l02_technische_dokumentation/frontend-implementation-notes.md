@@ -145,11 +145,11 @@ Der Endpunkt `GET /api/me/orders/{orderId}/returnable-items` liefert `OrderItemR
 
 Der Warenkorb ist mit der vorhandenen Cart-API verbunden:
 
-- `GET /api/cart?customerId=...`
-- `POST /api/cart/items`
+- `GET /api/cart/me`
+- `POST /api/cart/me/items`
 - `PUT /api/cart/items/{itemId}?quantity=...`
 - `DELETE /api/cart/items/{itemId}`
-- `DELETE /api/cart?customerId=...`
+- `DELETE /api/cart/me`
 
 Die Dateien dazu:
 
@@ -159,17 +159,17 @@ Die Dateien dazu:
 - `pages/ProductDetailPage.tsx`: legt ein Produkt in den Warenkorb.
 - `pages/CheckoutPage.tsx`: erstellt aus dem Warenkorb eine Bestellung ueber `POST /api/cart/checkout`.
 
-Hinweis: Die Cart-API nutzt aktuell noch `customerId` statt `/api/me/cart`. Das Frontend liest deshalb `currentUser.id` aus `AuthContext` und sendet diese ID an die Cart-API. Spaeter sollte das Backend auf JWT-basierte `/api/me/cart` Endpunkte umgestellt werden.
+Hinweis: Die alten Cart-Endpunkte mit `customerId` bleiben fuer Kompatibilitaet vorhanden. Das Frontend nutzt aber die JWT-basierte Variante und laesst das Backend den Kunden aus dem Token ermitteln.
 
 Backend-Contract-Fix: Der Produktkatalog verwendet `Long` fuer `products.id`. Deshalb wurden `cart_item.product_id` und `order_items.product_id` ebenfalls auf `BIGINT`/`Long` angepasst. Vorher war dort `UUID`, wodurch Produktdetailseite und Warenkorb nicht sauber zusammenpassen konnten.
 
 ## Checkout
 
 Der Checkout nutzt den vorhandenen Backend-Endpunkt `POST /api/cart/checkout`.
+Das Frontend nutzt die JWT-basierte Variante `POST /api/me/cart/checkout`.
 
 Request-Daten:
 
-- `customerId`: kommt aktuell aus `AuthContext.currentUser.id`.
 - `street`, `zipCode`, `city`: werden im Checkout-Formular eingegeben.
 
 Nach erfolgreicher Bestellung leitet das Frontend auf `/orders/{orderId}` weiter. Der Zahlungsstatus wird im Backend aktuell simuliert.
@@ -207,7 +207,7 @@ Design-Richtung:
 5. Ruecksendungen und Ruecksendeformular im Browser gegen das echte Backend testen.
 6. DTO-Feldnamen mit dem finalen Backend-Branch abgleichen.
 7. Warenkorb und Checkout im Browser gegen das echte Backend testen.
-8. Spaeter Cart-API und Checkout auf `/api/me/...` umstellen.
+8. Optional: Alte Cart-Endpunkte mit `customerId` spaeter entfernen, wenn keine Kompatibilitaet mehr gebraucht wird.
 
 ## Wichtige Hinweise
 

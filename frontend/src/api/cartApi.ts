@@ -1,15 +1,13 @@
 import { axiosClient } from './axiosClient'
 import type { AddCartItemRequest, Cart } from '../types/Cart'
 
-export async function getCart(customerId: string): Promise<Cart> {
-  const response = await axiosClient.get<Cart>('/cart', {
-    params: { customerId },
-  })
+export async function getCart(): Promise<Cart> {
+  const response = await axiosClient.get<Cart>('/cart/me')
   return response.data
 }
 
 export async function addCartItem(request: AddCartItemRequest): Promise<Cart> {
-  const response = await axiosClient.post<Cart>('/cart/items', request)
+  const response = await axiosClient.post<Cart>('/cart/me/items', request)
   return response.data
 }
 
@@ -25,8 +23,6 @@ export async function removeCartItem(itemId: string): Promise<Cart> {
   return response.data
 }
 
-export async function clearCart(customerId: string): Promise<void> {
-  await axiosClient.delete('/cart', {
-    params: { customerId },
-  })
+export async function clearCart(): Promise<void> {
+  await axiosClient.delete('/cart/me')
 }

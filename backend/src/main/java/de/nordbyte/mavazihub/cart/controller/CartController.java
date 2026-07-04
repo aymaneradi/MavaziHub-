@@ -1,9 +1,12 @@
 package de.nordbyte.mavazihub.cart.controller;
 
+import de.nordbyte.mavazihub.auth.security.model.CustomerUserDetails;
 import de.nordbyte.mavazihub.cart.dto.CartItemRequest;
 import de.nordbyte.mavazihub.cart.dto.CartResponse;
 import de.nordbyte.mavazihub.cart.service.CartService;
+import de.nordbyte.mavazihub.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,12 +31,28 @@ public class CartController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<CartResponse> getMyCart(Authentication authentication) {
+        CartResponse response = cartService.getCart(currentUser(authentication).getId());
+        return ResponseEntity.ok(response);
+    }
+
     /**
      * POST /api/cart/items
      * Produkt in den Warenkorb legen.
      */
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addToCart(@RequestBody CartItemRequest request) {
+        CartResponse response = cartService.addToCart(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/me/items")
+    public ResponseEntity<CartResponse> addToMyCart(
+            @RequestBody CartItemRequest request,
+            Authentication authentication
+    ) {
+        request.setCustomerId(currentUser(authentication).getId());
         CartResponse response = cartService.addToCart(request);
         return ResponseEntity.ok(response);
     }
@@ -69,5 +88,16 @@ public class CartController {
     public ResponseEntity<Void> clearCart(@RequestParam UUID customerId) {
         cartService.clearCart(customerId);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> clearMyCart(Authentication authentication) {
+        cartService.clearCart(currentUser(authentication).getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    private User currentUser(Authentication authentication) {
+        CustomerUserDetails userDetails = (CustomerUserDetails) authentication.getPrincipal();
+        return userDetails.getUser();
     }
 }

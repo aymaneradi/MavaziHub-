@@ -23,7 +23,7 @@ function CartPage() {
       setError(null)
 
       try {
-        const cartData = await getCart(currentUser.id)
+        const cartData = await getCart()
 
         if (isCurrentRequest) {
           setCart(cartData)
@@ -70,7 +70,7 @@ function CartPage() {
     }
 
     try {
-      await clearCart(currentUser.id)
+      await clearCart()
       setCart({ customerId: currentUser.id, items: [], totalPrice: 0 })
     } catch {
       setError('Warenkorb konnte nicht geleert werden.')
