@@ -17,7 +17,7 @@ export function ProductsPage() {
   const [products, setProducts] = useState<Array<ProductResponse | StoreProduct>>(mockProducts)
   const [categories, setCategories] = useState<CategoryResponse[]>(mockCategories)
   const [selectedCategoryId, setSelectedCategoryId] = useState(
-    Number(searchParams.get('category') ?? 0),
+      Number(searchParams.get('category') ?? 0),
   )
   const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const [isFallback, setIsFallback] = useState(false)
@@ -86,76 +86,86 @@ export function ProductsPage() {
       const material = isStoreProduct(product) ? product.material : ''
       const description = isStoreProduct(product) ? product.description : ''
       const matchesSearch =
-        normalizedSearch.length === 0 ||
-        [product.name, product.categoryName, material, description]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedSearch)
+          normalizedSearch.length === 0 ||
+          [product.name, product.categoryName, material, description]
+              .join(' ')
+              .toLowerCase()
+              .includes(normalizedSearch)
 
       return matchesCategory && matchesSearch
     })
   }, [products, search, selectedCategoryId])
 
   return (
-    <>
-      <section className="storefront-hero">
-        <div>
-          <p className="eyebrow">Storefront</p>
-          <h1>Afrikanische Stoffe, Mode und Accessoires für moderne Looks.</h1>
-          <p>
-            Kuratierte Prints, klare Kategorien und Produkte, die sich schnell finden lassen.
-          </p>
-        </div>
-        <div className="storefront-hero-art" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </section>
+      <>
+        { }
+        <section
+            className="storefront-hero"
+            style={{
 
-      <section className="category-band" aria-label="Kategorien">
-        {[allCategory, ...categories].map((category) => (
-          <button
-            key={category.id}
-            className={selectedCategoryId === category.id ? 'active' : undefined}
-            type="button"
-            onClick={() => setSelectedCategoryId(category.id)}
-          >
-            {category.name}
-          </button>
-        ))}
-      </section>
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/hero-bg.jpeg')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              color: 'white',
+              padding: '80px 20px',
+              borderRadius: '12px',
+              margin: '20px'
+            }}
+        >
+          <div>
+            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p> {/* Jaune doré pour le style */}
+            <h1 style={{ color: 'white' }}>Afrikanische Stoffe, Mode und Accessoires für moderne Looks.</h1>
+            <p style={{ color: '#f0f0f0' }}>
+              Kuratierte Prints, klare Kategorien und Produkte, die sich schnell finden lassen.
+            </p>
+          </div>
+          {/* On peut enlever ou garder les spans décoratifs selon le rendu */}
 
-      <section className="store-toolbar" aria-label="Produkte filtern">
-        <label>
-          <span>Suche</span>
-          <input
-            type="search"
-            placeholder="Ankara, Kente, Tasche..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </label>
-        <p>
-          {isLoading
-            ? 'Produkte werden geladen'
-            : `${visibleProducts.length} Produkte gefunden`}
-          {isFallback ? ' · Demo-Katalog aktiv' : ''}
-        </p>
-      </section>
-
-      <section className="store-product-grid" aria-label="Produktübersicht">
-        {visibleProducts.map((product) => (
-          <StoreProductCard key={product.id} product={product} />
-        ))}
-      </section>
-
-      {visibleProducts.length === 0 && (
-        <section className="empty-store-state">
-          <h2>Keine Produkte gefunden</h2>
-          <p>Bitte ändere Suche oder Kategorie.</p>
         </section>
-      )}
-    </>
+
+        <section className="category-band" aria-label="Kategorien">
+          {[allCategory, ...categories].map((category) => (
+              <button
+                  key={category.id}
+                  className={selectedCategoryId === category.id ? 'active' : undefined}
+                  type="button"
+                  onClick={() => setSelectedCategoryId(category.id)}
+              >
+                {category.name}
+              </button>
+          ))}
+        </section>
+
+        <section className="store-toolbar" aria-label="Produkte filtern">
+          <label>
+            <span>Suche</span>
+            <input
+                type="search"
+                placeholder="Ankara, Kente, Tasche..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <p>
+            {isLoading
+                ? 'Produkte werden geladen'
+                : `${visibleProducts.length} Produkte gefunden`}
+            {isFallback ? ' · Demo-Katalog aktiv' : ''}
+          </p>
+        </section>
+
+        <section className="store-product-grid" aria-label="Produktübersicht">
+          {visibleProducts.map((product) => (
+              <StoreProductCard key={product.id} product={product} />
+          ))}
+        </section>
+
+        {visibleProducts.length === 0 && (
+            <section className="empty-store-state">
+              <h2>Keine Produkte gefunden</h2>
+              <p>Bitte ändere Suche oder Kategorie.</p>
+            </section>
+        )}
+      </>
   )
 }

@@ -5,56 +5,77 @@ import { mockCategories, mockProducts } from '../../data/mockStore'
 
 export function HomePage() {
   return (
-    <>
-      <section className="home-hero">
-        <div className="home-hero-copy">
-          <p className="eyebrow">MavaziHub Storefront</p>
-          <h1>Afrikanische Prints, moderne Kleidung und kuratierte Accessoires.</h1>
-          <p>
-            Entdecke Stoffe, Headwraps und Looks, die Tradition, Farbe und Alltag
-            zusammenbringen.
-          </p>
-          <div className="home-hero-actions">
-            <Link to="/products">Shop entdecken</Link>
-            <Link to="/products?category=1">Stoffe ansehen</Link>
+      <>
+        <section
+            className="home-hero"
+            style={{
+              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('/hero-bg.jpeg')`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              color: 'white',
+              padding: '120px 20px',
+              borderRadius: '16px',
+              margin: '20px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '500px'
+            }}
+        >
+          <div className="home-hero-copy" style={{ maxWidth: '800px' }}>
+            <p className="eyebrow" style={{ color: '#FFD700', fontWeight: 'bold', marginBottom: '10px' }}>
+              MavaziHub Storefront
+            </p>
+            <h1 style={{ color: 'white', fontSize: '3.5rem', lineHeight: '1.2', marginBottom: '20px' }}>
+              Afrikanische Prints, moderne Kleidung und kuratierte Accessoires.
+            </h1>
+            <p style={{ color: '#f0f0f0', fontSize: '1.25rem', marginBottom: '30px' }}>
+              Entdecke Stoffe, Headwraps und Looks, die Tradition, Farbe und Alltag
+              zusammenbringen.
+            </p>
+            <div className="home-hero-actions" style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <Link to="/products" className="btn-primary" style={{ backgroundColor: 'black', color: 'white', padding: '12px 25px', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
+                Shop entdecken
+              </Link>
+              <Link to="/products?category=1" className="btn-secondary" style={{ backgroundColor: 'white', color: 'black', padding: '12px 25px', borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold' }}>
+                Stoffe ansehen
+              </Link>
+            </div>
           </div>
-        </div>
 
-        <div className="home-hero-scene" aria-hidden="true">
-          <div className="hero-textile hero-textile-large" />
-          <div className="hero-look" />
-          <div className="hero-textile hero-textile-small" />
-        </div>
-      </section>
+          {/* Le bloc "home-hero-scene" a été supprimé pour laisser place à la photo de fond */}
+        </section>
 
-      <section className="category-preview" aria-labelledby="category-preview-title">
-        <div className="section-heading">
-          <h2 id="category-preview-title">Shop nach Kategorie</h2>
-          <Link to="/products">Alle Produkte</Link>
-        </div>
+        <section className="category-preview" aria-labelledby="category-preview-title" style={{ padding: '40px 20px' }}>
+          <div className="section-heading">
+            <h2 id="category-preview-title">Shop nach Kategorie</h2>
+            <Link to="/products">Alle Produkte</Link>
+          </div>
 
-        <div className="category-preview-grid">
-          {mockCategories.map((category) => (
-            <Link key={category.id} to={`/products?category=${category.id}`}>
-              <span>{category.name}</span>
-              <small>{category.description}</small>
-            </Link>
-          ))}
-        </div>
-      </section>
+          <div className="category-preview-grid">
+            {mockCategories.map((category) => (
+                <Link key={category.id} to={`/products?category=${category.id}`}>
+                  <span>{category.name}</span>
+                  <small>{category.description}</small>
+                </Link>
+            ))}
+          </div>
+        </section>
 
-      <section className="product-section" aria-labelledby="latest-products">
-        <div className="section-heading">
-          <h2 id="latest-products">Ausgewählte Produkte</h2>
-          <Link to="/products">Zum Shop</Link>
-        </div>
+        <section className="product-section" aria-labelledby="latest-products" style={{ padding: '40px 20px' }}>
+          <div className="section-heading">
+            <h2 id="latest-products">Ausgewählte Produkte</h2>
+            <Link to="/products">Zum Shop</Link>
+          </div>
 
-        <div className="store-product-grid store-product-grid-compact">
-          {mockProducts.slice(0, 4).map((product) => (
-            <StoreProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-    </>
+          <div className="store-product-grid store-product-grid-compact">
+            {mockProducts.slice(0, 4).map((product) => (
+                <StoreProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      </>
   )
 }

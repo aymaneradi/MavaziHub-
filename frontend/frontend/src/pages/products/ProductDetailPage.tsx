@@ -118,22 +118,25 @@ export function ProductDetailPage() {
   const stockQuantity = selectedVariant?.stockQuantity ?? product.stockQuantity
 
   return (
-    <>
-      <nav className="breadcrumb" aria-label="Breadcrumb">
-        <Link to="/products">Produkte</Link>
-        <span>{product.categoryName}</span>
-      </nav>
+      <>
+        <nav className="breadcrumb" style={{ margin: '20px', padding: '10px 0' }} aria-label="Breadcrumb">
+          <Link to="/products" style={{ color: '#8b4513', fontWeight: 'bold' }}>Produkte</Link>
+          <span style={{ margin: '0 10px' }}>/</span>
+          <span>{product.categoryName}</span>
+        </nav>
 
-      <section className="product-detail-layout">
-        <div className="product-detail-media">
-          <ProductVisual imageUrl={product.imageUrl} palette={palette} label={product.name} />
-        </div>
+        <section className="product-detail-layout" style={{ margin: '0 20px 40px 20px' }}>
+          <div className="product-detail-media">
+            {/* L'image locale s'affichera ici grâce au chemin /images/... que tu as mis en BDD */}
+            <ProductVisual imageUrl={product.imageUrl} palette={palette} label={product.name} />
+          </div>
 
-        <div className="product-detail-info">
-          <p className="eyebrow">{product.categoryName}</p>
-          <h1>{product.name}</h1>
-          <p>{product.description}</p>
-
+          <div className="product-detail-info">
+            <p className="eyebrow" style={{ color: '#8b4513', fontWeight: 'bold', textTransform: 'uppercase' }}>
+              {product.categoryName}
+            </p>
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>{product.name}</h1>
+            <p style={{ fontSize: '1.1rem', color: '#555', lineHeight: '1.6' }}>{product.description}</p>
           <dl className="product-facts">
             <div>
               <dt>Material</dt>
