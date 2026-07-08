@@ -113,13 +113,13 @@ export function ProductsPage() {
             }}
         >
           <div>
-            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p> {/* Jaune doré pour le style */}
+            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p> { }
             <h1 style={{ color: 'white' }}>Afrikanische Stoffe, Mode und Accessoires für moderne Looks.</h1>
             <p style={{ color: '#f0f0f0' }}>
               Kuratierte Prints, klare Kategorien und Produkte, die sich schnell finden lassen.
             </p>
           </div>
-          {/* On peut enlever ou garder les spans décoratifs selon le rendu */}
+          { }
 
         </section>
 

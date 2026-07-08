@@ -6,7 +6,7 @@ INSERT INTO categories (name, description) VALUES
                                                ('Specials', 'Limitierte Editionen und besondere Angebote')
     ON CONFLICT (name) DO NOTHING;
 
--- 2. Produits (incluant le Dashiki de ton lien)
+
 INSERT INTO products (name, description, price, image_url, stock_quantity, active, category_id, created_at) VALUES
                                                                                                                 (
                                                                                                                     'Dashiki Shirt - Savanna Sun',
