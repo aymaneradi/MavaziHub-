@@ -45,9 +45,9 @@ export function RegisterPage() {
   return (
     <section className="auth-page">
       <div className="auth-panel">
-        <p className="eyebrow">Kundenkonto</p>
+        <p className="eyebrow">Neu bei MavaziHub</p>
         <h1>Registrieren</h1>
-        <p>Erstelle dein MavaziHub-Konto für Checkout, Bestellhistorie und Rücksendungen.</p>
+        <p>Erstelle dein Konto und bestelle beim nächsten Mal noch schneller.</p>
 
         {error && <p className="auth-error">{error}</p>}
 

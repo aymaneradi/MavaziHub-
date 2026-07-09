@@ -53,11 +53,11 @@ export function OrderDetailPage() {
     <section className="account-page">
       <div className="commerce-header">
         <div>
-          <p className="eyebrow">Bestelldetail</p>
+          <p className="eyebrow">Bestellung</p>
           <h1>{order ? `Bestellung #${order.id.slice(0, 8)}` : 'Bestellung'}</h1>
-          <p>Prüfe Status, Zahlung und alle bestellten Positionen.</p>
+          <p>Alle Informationen zu deiner Bestellung im Überblick.</p>
         </div>
-        <Link to="/orders">Zur Bestellhistorie</Link>
+        <Link to="/orders">Zu meinen Bestellungen</Link>
       </div>
 
       {message && <p className="commerce-message" role="status">{message}</p>}

@@ -15,7 +15,7 @@ export function ProtectedRoute({ roles, redirectTo = '/login' }: ProtectedRouteP
   if (auth.isLoading) {
     return (
       <section className="auth-status">
-        <p className="eyebrow">Kundenkonto</p>
+        <p className="eyebrow">Mein Bereich</p>
         <h1>Zugang wird geprüft</h1>
       </section>
     )

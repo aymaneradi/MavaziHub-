@@ -82,9 +82,9 @@ export function CartPage() {
     <section className="cart-page">
       <div className="commerce-header">
         <div>
-          <p className="eyebrow">Kundenbereich</p>
+          <p className="eyebrow">Deine Auswahl</p>
           <h1>Warenkorb</h1>
-          <p>Prüfe deine Auswahl, passe Mengen an und starte anschließend den Checkout.</p>
+          <p>Schau dir deine Artikel an und passe die Menge bei Bedarf an.</p>
         </div>
         <Link to="/products">Weiter einkaufen</Link>
       </div>
@@ -164,11 +164,11 @@ export function CartPage() {
               </div>
               <div>
                 <dt>Versand</dt>
-                <dd>Im Checkout</dd>
+                <dd>An der Kasse</dd>
               </div>
             </dl>
             <Link className="primary-action" to="/checkout">
-              Checkout starten
+              Zur Kasse
             </Link>
             <button className="secondary-action" type="button" onClick={clearCart}>
               Warenkorb leeren

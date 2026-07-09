@@ -52,7 +52,7 @@ export function AdminProductsPage() {
         <div>
           <p className="eyebrow">{areaLabel}</p>
           <h1>Produkte</h1>
-          <p>Produktkatalog verwalten, Produkte veröffentlichen und Lagerdetails öffnen.</p>
+          <p>Produkte bearbeiten, veröffentlichen und Lagerdetails prüfen.</p>
         </div>
         <Link className="admin-primary-link" to="/admin/products/new">
           Produkt anlegen
@@ -62,8 +62,7 @@ export function AdminProductsPage() {
       {message && <p className="admin-message" role="status">{message}</p>}
 
       <p className="admin-system-note">
-        Nicht angeboten: Produkt löschen und Bild-Upload. Dafür gibt es aktuell keinen finalen
-        Backend-Endpunkt; Bilder werden deshalb per URL gepflegt.
+        Bilder werden aktuell über Bildadressen gepflegt. Produkte können bei Bedarf deaktiviert werden.
       </p>
 
       <div className="admin-panel">

@@ -5,6 +5,13 @@ import { useAuth } from '../../auth/AuthContext'
 import type { OrderResponse } from '../../types'
 
 const orderStatuses = ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+const orderStatusLabels: Record<string, string> = {
+  PAID: 'Bezahlt',
+  PROCESSING: 'In Bearbeitung',
+  SHIPPED: 'Versendet',
+  DELIVERED: 'Geliefert',
+  CANCELLED: 'Storniert',
+}
 
 const formatCurrency = (value: number) =>
   value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
@@ -55,7 +62,7 @@ export function AdminOrdersPage() {
         <div>
           <p className="eyebrow">{areaLabel}</p>
           <h1>Bestellungen</h1>
-          <p>Status prüfen und Bestellungen fachlich weiterführen.</p>
+          <p>Bestellungen einsehen und den Bearbeitungsstand aktualisieren.</p>
         </div>
       </div>
 
@@ -99,7 +106,7 @@ export function AdminOrdersPage() {
                       >
                         {orderStatuses.map((status) => (
                           <option key={status} value={status}>
-                            {status}
+                            {orderStatusLabels[status]}
                           </option>
                         ))}
                       </select>

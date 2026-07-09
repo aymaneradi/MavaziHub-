@@ -7,27 +7,27 @@ const dashboardLinks = [
   {
     to: '/admin/products',
     title: 'Produkte',
-    text: 'Produktliste, Veröffentlichung und Bearbeitung.',
+    text: 'Produkte anlegen, bearbeiten und veröffentlichen.',
   },
   {
     to: '/admin/categories',
     title: 'Kategorien',
-    text: 'Katalogstruktur für Shop und Produktformular.',
+    text: 'Kategorien für den Shop strukturieren.',
   },
   {
     to: '/admin/orders',
     title: 'Bestellungen',
-    text: 'Bestellstatus prüfen und aktualisieren.',
+    text: 'Bestellungen prüfen und Status anpassen.',
   },
   {
     to: '/admin/returns',
     title: 'Retouren',
-    text: 'Rücksendeanfragen bearbeiten.',
+    text: 'Rücksendungen einsehen und bearbeiten.',
   },
   {
     to: '/admin/users',
     title: 'Nutzer',
-    text: 'Rollen und Aktivstatus verwalten.',
+    text: 'Zugänge und Rollen verwalten.',
     roles: ['ROLE_ADMIN'] satisfies UserRole[],
   },
 ]
@@ -43,7 +43,7 @@ export function AdminDashboardPage() {
         <div>
           <p className="eyebrow">{areaLabel}</p>
           <h1>Dashboard</h1>
-          <p>Getrennter Verwaltungsbereich für Katalog, Bestellungen, Retouren und Nutzer.</p>
+          <p>Alles Wichtige für Shop-Betrieb und Kundenservice an einem Ort.</p>
         </div>
       </div>
 

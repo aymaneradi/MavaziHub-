@@ -34,7 +34,7 @@ export function OrdersPage() {
         const response = await orderApi.getMyOrders()
         setOrders(response)
       } catch {
-        setMessage('Die Bestellhistorie konnte gerade nicht geladen werden.')
+        setMessage('Deine Bestellungen konnten gerade nicht geladen werden.')
       } finally {
         setIsLoading(false)
       }
@@ -47,9 +47,9 @@ export function OrdersPage() {
     <section className="account-page">
       <div className="commerce-header">
         <div>
-          <p className="eyebrow">Kundenkonto</p>
-          <h1>Bestellhistorie</h1>
-          <p>Alle abgeschlossenen Bestellungen mit Status, Summe und Detailansicht.</p>
+          <p className="eyebrow">Bestellungen</p>
+          <h1>Meine Bestellungen</h1>
+          <p>Alle Informationen zu deinen Bestellungen auf einen Blick.</p>
         </div>
         <Link to="/products">Weiter einkaufen</Link>
       </div>
@@ -63,7 +63,7 @@ export function OrdersPage() {
       ) : orders.length === 0 ? (
         <div className="commerce-empty">
           <h2>Noch keine Bestellungen</h2>
-          <p>Sobald du den Checkout abschließt, erscheint deine Bestellung hier.</p>
+          <p>Sobald du eine Bestellung abgeschlossen hast, findest du sie hier.</p>
           <Link to="/products">Produkte ansehen</Link>
         </div>
       ) : (

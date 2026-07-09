@@ -44,9 +44,9 @@ export function LoginPage() {
   return (
     <section className="auth-page">
       <div className="auth-panel">
-        <p className="eyebrow">Kundenkonto</p>
+        <p className="eyebrow">Willkommen zurück</p>
         <h1>Anmelden</h1>
-        <p>Greife auf Warenkorb, Bestellungen, Rücksendungen und dein Profil zu.</p>
+        <p>Melde dich an und fahre mit deinem Einkauf fort.</p>
 
         {state?.message && <p className="auth-success">{state.message}</p>}
         {error && <p className="auth-error">{error}</p>}

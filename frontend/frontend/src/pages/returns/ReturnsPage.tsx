@@ -45,7 +45,7 @@ export function ReturnsPage() {
         <div>
           <p className="eyebrow">Rücksendungen</p>
           <h1>Meine Rücksendungen</h1>
-          <p>Verfolge den Status deiner Rücksendeanfragen im Kundenkonto.</p>
+          <p>Hier findest du den aktuellen Stand deiner Rücksendungen.</p>
         </div>
         <Link to="/returns/new">Rücksendung anfordern</Link>
       </div>
@@ -59,7 +59,7 @@ export function ReturnsPage() {
       ) : returns.length === 0 ? (
         <div className="commerce-empty">
           <h2>Noch keine Rücksendungen</h2>
-          <p>Wähle eine Bestellung aus, wenn du Artikel zurücksenden möchtest.</p>
+          <p>Starte eine Rücksendung direkt aus deiner Bestellung.</p>
           <Link to="/returns/new">Rücksendung starten</Link>
         </div>
       ) : (

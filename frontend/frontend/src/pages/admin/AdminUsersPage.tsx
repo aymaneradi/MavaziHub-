@@ -73,7 +73,7 @@ export function AdminUsersPage() {
         <div>
           <p className="eyebrow">Adminbereich</p>
           <h1>Nutzerverwaltung</h1>
-          <p>Konten aktivieren/deaktivieren und Rollen für Admin oder Mitarbeitende setzen.</p>
+          <p>Zugänge prüfen und Rollen für Mitarbeitende oder Admins anpassen.</p>
         </div>
       </div>
 

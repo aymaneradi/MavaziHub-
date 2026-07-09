@@ -71,15 +71,14 @@ export function AdminCategoriesPage() {
         <div>
           <p className="eyebrow">Katalog</p>
           <h1>Kategorien</h1>
-          <p>Kategorien pflegen, damit Shop und Produktformular dieselbe Struktur nutzen.</p>
+          <p>Kategorien für den Shop anlegen und bearbeiten.</p>
         </div>
       </div>
 
       {message && <p className="admin-message" role="status">{message}</p>}
 
       <p className="admin-system-note">
-        Kategorien können angelegt und bearbeitet werden. Löschen wird im UI nicht angeboten,
-        weil dafür kein Backend-Endpunkt definiert ist.
+        Kategorien können angelegt und bei Bedarf angepasst werden.
       </p>
 
       <div className="admin-grid-two">

@@ -13,6 +13,16 @@ const formatDate = (value: string) =>
     dateStyle: 'medium',
   }).format(new Date(value))
 
+const returnStatusLabel = (status: string) =>
+  ({
+    REQUESTED: 'Beantragt',
+    APPROVED: 'Genehmigt',
+    REJECTED: 'Abgelehnt',
+    RECEIVED: 'Eingegangen',
+    REFUNDED: 'Erstattet',
+    COMPLETED: 'Abgeschlossen',
+  })[status] ?? status
+
 export function NewReturnPage() {
   const [searchParams] = useSearchParams()
   const initialOrderId = searchParams.get('orderId') ?? ''
@@ -113,7 +123,7 @@ export function NewReturnPage() {
         <div className="confirmation-panel">
           <p className="eyebrow">Rücksendung</p>
           <h1>Rücksendung angefordert</h1>
-          <p>Deine Anfrage wurde gespeichert und ist jetzt in deiner Übersicht sichtbar.</p>
+          <p>Wir haben deine Rücksendung aufgenommen. Den aktuellen Stand findest du in deiner Übersicht.</p>
           <dl>
             <div>
               <dt>Rücksendenummer</dt>
@@ -121,7 +131,7 @@ export function NewReturnPage() {
             </div>
             <div>
               <dt>Status</dt>
-              <dd>{createdReturn.status}</dd>
+              <dd>{returnStatusLabel(createdReturn.status)}</dd>
             </div>
             <div>
               <dt>Artikel</dt>
@@ -140,7 +150,7 @@ export function NewReturnPage() {
         <div>
           <p className="eyebrow">Rücksendung</p>
           <h1>Rücksendung anfordern</h1>
-          <p>Wähle eine Bestellung, markiere die Artikel und sende die Anfrage ab.</p>
+          <p>Wähle die Bestellung und die Artikel aus, die du zurücksenden möchtest.</p>
         </div>
         <Link to="/returns">Zur Übersicht</Link>
       </div>
@@ -228,7 +238,7 @@ export function NewReturnPage() {
           </div>
 
           <aside className="cart-summary">
-            <h2>Anfrage</h2>
+            <h2>Rücksendung</h2>
             <dl>
               <div>
                 <dt>Ausgewählte Artikel</dt>
@@ -240,7 +250,7 @@ export function NewReturnPage() {
               </div>
             </dl>
             <button className="primary-action" disabled={isSubmitting} type="submit">
-              {isSubmitting ? 'Wird gesendet' : 'Rücksendung absenden'}
+              {isSubmitting ? 'Wird abgesendet' : 'Rücksendung absenden'}
             </button>
           </aside>
         </form>

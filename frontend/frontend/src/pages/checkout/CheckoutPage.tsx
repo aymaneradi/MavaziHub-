@@ -8,7 +8,16 @@ import type { CartResponse, OrderResponse } from '../../types'
 const formatCurrency = (value: number) =>
   value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
 
-const checkoutSteps = ['Warenkorb prüfen', 'Lieferadresse', 'Zahlungsart', 'Bestätigung']
+const checkoutSteps = ['Warenkorb', 'Lieferadresse', 'Zahlungsart', 'Bestätigung']
+const orderStatusLabel = (status: string) =>
+  ({
+    CREATED: 'Angelegt',
+    PAID: 'Bezahlt',
+    PROCESSING: 'In Bearbeitung',
+    SHIPPED: 'Versendet',
+    DELIVERED: 'Geliefert',
+    CANCELLED: 'Storniert',
+  })[status] ?? status
 
 export function CheckoutPage() {
   const [step, setStep] = useState(0)
@@ -75,7 +84,7 @@ export function CheckoutPage() {
     return (
       <section className="checkout-page">
         <div className="commerce-empty">
-          <h1>Checkout wird geladen</h1>
+          <h1>Kasse wird geladen</h1>
         </div>
       </section>
     )
@@ -88,7 +97,7 @@ export function CheckoutPage() {
           <p className="eyebrow">Bestätigung</p>
           <h1>Bestellung eingegangen</h1>
           <p>
-            Deine Bestellung wurde simuliert abgeschlossen. Zahlungsart:{' '}
+            Danke, deine Bestellung ist eingegangen. Zahlungsart:{' '}
             {paymentMethod === 'invoice' ? 'Rechnung' : 'Karte'}.
           </p>
           <dl>
@@ -98,14 +107,14 @@ export function CheckoutPage() {
             </div>
             <div>
               <dt>Status</dt>
-              <dd>{order.status}</dd>
+              <dd>{orderStatusLabel(order.status)}</dd>
             </div>
             <div>
               <dt>Summe</dt>
               <dd>{formatCurrency(order.totalPrice)}</dd>
             </div>
           </dl>
-          <Link to="/orders">Zur Bestellhistorie</Link>
+          <Link to="/orders">Zu meinen Bestellungen</Link>
         </div>
       </section>
     )
@@ -116,7 +125,7 @@ export function CheckoutPage() {
       <section className="checkout-page">
         <div className="commerce-empty">
           <h1>Dein Warenkorb ist leer</h1>
-          <p>Lege zuerst Produkte in den Warenkorb, bevor du den Checkout startest.</p>
+          <p>Lege zuerst Produkte in den Warenkorb, bevor du zur Kasse gehst.</p>
           <Link to="/products">Produkte ansehen</Link>
         </div>
       </section>
@@ -127,13 +136,13 @@ export function CheckoutPage() {
     <section className="checkout-page">
       <div className="commerce-header">
         <div>
-          <p className="eyebrow">Checkout</p>
+          <p className="eyebrow">Kasse</p>
           <h1>Bestellung abschließen</h1>
-          <p>Vier klare Schritte: Warenkorb, Lieferadresse, Zahlungsart und Bestätigung.</p>
+          <p>Schau dir deine Auswahl an, ergänze die Lieferadresse und bestätige die Bestellung.</p>
         </div>
       </div>
 
-      <ol className="checkout-steps" aria-label="Checkout Schritte">
+      <ol className="checkout-steps" aria-label="Bestellschritte">
         {checkoutSteps.map((label, index) => (
           <li className={index === step ? 'active' : index < step ? 'done' : undefined} key={label}>
             <span>{index + 1}</span>
@@ -148,7 +157,7 @@ export function CheckoutPage() {
         <div className="checkout-panel">
           {step === 0 && (
             <div className="checkout-step-panel">
-              <h2>Warenkorb prüfen</h2>
+              <h2>Deine Artikel</h2>
               {items.map((item) => (
                 <div className="checkout-line" key={item.id}>
                   <span>{item.productName}</span>
@@ -201,7 +210,7 @@ export function CheckoutPage() {
 
           {step === 2 && (
             <div className="checkout-step-panel">
-              <h2>Zahlungsart simuliert</h2>
+              <h2>Zahlungsart</h2>
               <div className="payment-options">
                 <label>
                   <input
@@ -221,7 +230,7 @@ export function CheckoutPage() {
                     value="card"
                     onChange={(event) => setPaymentMethod(event.target.value)}
                   />
-                  Karte simuliert
+                  Karte
                 </label>
               </div>
             </div>
@@ -231,8 +240,7 @@ export function CheckoutPage() {
             <div className="checkout-step-panel">
               <h2>Bestätigung</h2>
               <p>
-                Prüfe deine Angaben. Beim Abschließen wird die Bestellung im Backend angelegt
-                und der Warenkorb geleert.
+                Prüfe deine Angaben. Wenn alles passt, kannst du deine Bestellung bestätigen.
               </p>
               <dl className="checkout-review">
                 <div>
@@ -243,7 +251,7 @@ export function CheckoutPage() {
                 </div>
                 <div>
                   <dt>Zahlungsart</dt>
-                  <dd>{paymentMethod === 'invoice' ? 'Rechnung' : 'Karte simuliert'}</dd>
+                  <dd>{paymentMethod === 'invoice' ? 'Rechnung' : 'Karte'}</dd>
                 </div>
               </dl>
             </div>
@@ -280,7 +288,7 @@ export function CheckoutPage() {
               </button>
             ) : (
               <button className="primary-action" disabled={isSubmitting} type="submit">
-                {isSubmitting ? 'Bestellung läuft' : 'Bestellung bestätigen'}
+                {isSubmitting ? 'Wird bestätigt' : 'Bestellung bestätigen'}
               </button>
             )}
           </div>

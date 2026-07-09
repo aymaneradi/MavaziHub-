@@ -5,6 +5,14 @@ import { useAuth } from '../../auth/AuthContext'
 import type { ReturnRequestResponseDTO } from '../../types'
 
 const returnStatuses = ['REQUESTED', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'COMPLETED']
+const returnStatusLabels: Record<string, string> = {
+  REQUESTED: 'Beantragt',
+  APPROVED: 'Genehmigt',
+  REJECTED: 'Abgelehnt',
+  RECEIVED: 'Eingegangen',
+  REFUNDED: 'Erstattet',
+  COMPLETED: 'Abgeschlossen',
+}
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
@@ -54,7 +62,7 @@ export function AdminReturnsPage() {
         <div>
           <p className="eyebrow">{areaLabel}</p>
           <h1>Retouren</h1>
-          <p>Rücksendeanfragen prüfen und Status im Backend aktualisieren.</p>
+          <p>Rücksendungen einsehen und den Bearbeitungsstand aktualisieren.</p>
         </div>
       </div>
 
@@ -100,7 +108,7 @@ export function AdminReturnsPage() {
                       >
                         {returnStatuses.map((status) => (
                           <option key={status} value={status}>
-                            {status}
+                            {returnStatusLabels[status]}
                           </option>
                         ))}
                       </select>

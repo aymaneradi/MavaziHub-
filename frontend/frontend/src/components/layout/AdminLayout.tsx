@@ -22,7 +22,7 @@ export function AdminLayout() {
         <NavLink className="admin-brand" to="/">
           MavaziHub
         </NavLink>
-        <p>Verwaltung</p>
+        <p>Arbeitsbereich</p>
         <nav aria-label="Admin Navigation">
           {visibleLinks.map((link) => (
             <NavLink key={link.to} to={link.to} end={link.end}>

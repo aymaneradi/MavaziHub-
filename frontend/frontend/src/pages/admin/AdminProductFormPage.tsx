@@ -118,7 +118,7 @@ export function AdminProductFormPage() {
         <div>
           <p className="eyebrow">Produktverwaltung</p>
           <h1>{isEditMode ? 'Produkt bearbeiten' : 'Produkt anlegen'}</h1>
-          <p>Basisdaten, Preis, Kategorie und Hauptlagerbestand verwalten.</p>
+          <p>Produktdaten, Preis, Kategorie und Lagerbestand bearbeiten.</p>
         </div>
         <Link className="admin-secondary-link" to="/admin/products">
           Zur Produktliste

@@ -22,9 +22,9 @@ export function ProfilePage() {
     <section className="profile-page">
       <div className="profile-header">
         <div>
-          <p className="eyebrow">Kundenbereich</p>
+          <p className="eyebrow">Mein Bereich</p>
           <h1>Hallo, {user.firstname}</h1>
-          <p>Hier findest du dein Profil und die wichtigsten geschützten Kundenfunktionen.</p>
+          <p>Hier verwaltest du dein Profil, deine Bestellungen und Rücksendungen.</p>
         </div>
         <button type="button" onClick={handleLogout}>
           Logout
@@ -53,8 +53,8 @@ export function ProfilePage() {
         </article>
 
         <article className="profile-panel">
-          <h2>Kundenkonto</h2>
-          <p>Dein Konto ist aktiv. Hier verwaltest du Bestellungen, Rücksendungen und deinen Warenkorb.</p>
+          <h2>Alles auf einen Blick</h2>
+          <p>Bestellungen, Rücksendungen und Warenkorb sind direkt für dich erreichbar.</p>
         </article>
       </div>
 
