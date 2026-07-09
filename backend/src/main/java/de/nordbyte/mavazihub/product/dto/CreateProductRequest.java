@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Enthält die Eingabedaten zum Anlegen eines Produkts.
@@ -24,6 +25,8 @@ public class CreateProductRequest {
 
     @Size(max = 500, message = "Bild-URL darf maximal 500 Zeichen haben")
     private String imageUrl;
+
+    private List<@Size(max = 500, message = "Bild-URL darf maximal 500 Zeichen haben") String> imageUrls;
 
     @PositiveOrZero(message = "Lagerbestand darf nicht negativ sein")
     private int stockQuantity;

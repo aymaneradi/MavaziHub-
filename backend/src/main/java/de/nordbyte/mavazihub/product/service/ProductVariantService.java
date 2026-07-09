@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Enthält die Geschäftslogik für Produktvarianten.
@@ -200,43 +199,13 @@ public class ProductVariantService {
             Long productId, String size, String color,
             String pattern, Long ignoredVariantId) {
 
-        boolean exists;
-        String s = size  == null ? "" : size;
-        String c = color == null ? "" : color;
-        String p = pattern == null ? "" : pattern;
-
-        if (ignoredVariantId == null) {
-            exists = productVariantRepository
-                    .existsByProductIdAndSizeIgnoreCaseAndColorIgnoreCaseAndPatternIgnoreCase(
-                            productId, s, c, p);
-        } else {
-            exists = productVariantRepository
-                    .existsByProductIdAndSizeIgnoreCaseAndColorIgnoreCaseAndPatternIgnoreCaseAndIdNot(
-                            productId, s, c, p, ignoredVariantId);
-        }
+        boolean exists = productVariantRepository.existsByNormalizedAttributes(
+                productId, size, color, pattern, ignoredVariantId
+        );
 
         if (exists) {
             throw new BusinessException("Diese Produktvariante existiert bereits");
         }
-    }
-// → Datenbank prüft, nicht Java → schneller, kein Speicherproblem
-
-    /**
-     * Vergleicht zwei Texte ohne Beachtung der Groß- und Kleinschreibung.
-     */
-    private boolean sameText(String first, String second) {
-        return normalizeForComparison(first).equals(normalizeForComparison(second));
-    }
-
-    /**
-     * Normalisiert Text für Vergleiche.
-     */
-    private String normalizeForComparison(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
-
-        return value.trim().toLowerCase();
     }
 
     /**

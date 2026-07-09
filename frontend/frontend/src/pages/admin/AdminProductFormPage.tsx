@@ -10,8 +10,16 @@ const emptyForm = {
   description: '',
   price: '0',
   imageUrl: '',
+  imageUrls: '',
   stockQuantity: '0',
   categoryId: '',
+}
+
+function splitImageUrls(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((url) => url.trim())
+    .filter(Boolean)
 }
 
 export function AdminProductFormPage() {
@@ -50,7 +58,10 @@ export function AdminProductFormPage() {
           name: product.name,
           description: product.description ?? '',
           price: product.price.toString(),
-          imageUrl: product.imageUrl ?? '',
+          imageUrl: product.imageUrl ?? product.imageUrls?.[0] ?? '',
+          imageUrls: product.imageUrls
+            ?.filter((imageUrl) => imageUrl !== (product.imageUrl ?? product.imageUrls?.[0]))
+            .join('\n') ?? '',
           stockQuantity: product.stockQuantity.toString(),
           categoryId: product.categoryId.toString(),
         })
@@ -81,6 +92,7 @@ export function AdminProductFormPage() {
       description: form.description.trim() || undefined,
       price: Number(form.price),
       imageUrl: form.imageUrl.trim() || undefined,
+      imageUrls: splitImageUrls(form.imageUrls),
       stockQuantity: Math.max(0, Number(form.stockQuantity)),
       categoryId: Number(form.categoryId),
     }
@@ -170,11 +182,22 @@ export function AdminProductFormPage() {
             </label>
 
             <label className="admin-wide">
-              <span>Bild-URL optional</span>
+              <span>Hauptbild-URL optional</span>
               <input
                 value={form.imageUrl}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, imageUrl: event.target.value }))
+                }
+              />
+            </label>
+
+            <label className="admin-wide">
+              <span>Weitere Bild-URLs optional</span>
+              <textarea
+                rows={4}
+                value={form.imageUrls}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, imageUrls: event.target.value }))
                 }
               />
             </label>

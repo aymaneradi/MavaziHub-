@@ -1,12 +1,27 @@
+import { useEffect, useState } from 'react'
+
 type ProductVisualProps = {
-  imageUrl?: string
+  imageUrl?: string | null
   palette?: string
   label: string
 }
 
 export function ProductVisual({ imageUrl, palette = 'sunset', label }: ProductVisualProps) {
-  if (imageUrl) {
-    return <img className="store-product-photo" src={imageUrl} alt={label} />
+  const [hasImageError, setHasImageError] = useState(false)
+
+  useEffect(() => {
+    setHasImageError(false)
+  }, [imageUrl])
+
+  if (imageUrl && !hasImageError) {
+    return (
+      <img
+        className="store-product-photo"
+        src={imageUrl}
+        alt={label}
+        onError={() => setHasImageError(true)}
+      />
+    )
   }
 
   return (

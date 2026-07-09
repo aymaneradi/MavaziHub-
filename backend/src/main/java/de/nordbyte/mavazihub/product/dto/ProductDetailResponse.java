@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Enthält die Ausgabedaten eines Produkts für Detailansichten.
@@ -18,6 +19,7 @@ public class ProductDetailResponse {
     private String description;
     private BigDecimal price;
     private String imageUrl;
+    private List<String> imageUrls;
     private int stockQuantity;
     private Long categoryId;
     private String categoryName;

@@ -17,7 +17,8 @@ export type ProductResponse = {
   id: number
   name: string
   price: number
-  imageUrl: string
+  imageUrl: string | null
+  imageUrls?: string[]
   stockQuantity: number
   categoryId: number
   categoryName: string
@@ -37,6 +38,7 @@ export type CreateProductRequest = {
   description?: string
   price: number
   imageUrl?: string
+  imageUrls?: string[]
   stockQuantity: number
   categoryId: number
 }

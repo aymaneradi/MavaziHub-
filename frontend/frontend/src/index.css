@@ -809,6 +809,34 @@ textarea:disabled {
   aspect-ratio: 1 / 1.12;
 }
 
+.product-gallery-thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.product-gallery-thumbs button {
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.product-gallery-thumbs button.active {
+  border-color: var(--mh-black);
+}
+
+.product-gallery-thumbs .store-product-art,
+.product-gallery-thumbs .store-product-photo {
+  aspect-ratio: 1 / 1;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
 .product-detail-info h1 {
   max-width: 720px;
   margin: 0 0 18px;

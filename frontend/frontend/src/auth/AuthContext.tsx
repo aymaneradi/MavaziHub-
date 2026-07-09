@@ -34,8 +34,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const reloadUser = useCallback(async () => {
     if (!getAccessToken()) {
-      setUser(null)
-      return
+      const refreshToken = getRefreshToken()
+
+      if (!refreshToken) {
+        setUser(null)
+        return
+      }
+
+      await authApi.refresh({ refreshToken })
     }
 
     const currentUser = await authApi.me()

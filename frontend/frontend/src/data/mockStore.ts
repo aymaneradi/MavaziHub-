@@ -127,6 +127,7 @@ export const toProductDetail = (product: StoreProduct): ProductDetailResponse =>
   description: product.description,
   price: product.price,
   imageUrl: product.imageUrl,
+  imageUrls: product.imageUrl ? [product.imageUrl] : [],
   stockQuantity: product.stockQuantity,
   categoryId: product.categoryId,
   categoryName: product.categoryName,

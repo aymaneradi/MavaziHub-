@@ -1,9 +1,44 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { categoryApi, productApi } from '../../api'
 import { StoreProductCard } from '../../components/product/StoreProductCard'
 import { mockCategories, mockProducts } from '../../data/mockStore'
+import type { CategoryResponse, ProductResponse } from '../../types'
 
 export function HomePage() {
+  const [categories, setCategories] = useState<CategoryResponse[]>(mockCategories)
+  const [products, setProducts] = useState<ProductResponse[]>(mockProducts)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadHomeData() {
+      try {
+        const [categoryResponse, productResponse] = await Promise.all([
+          categoryApi.getCategories(),
+          productApi.getProducts(),
+        ])
+
+        if (isMounted) {
+          setCategories(categoryResponse)
+          setProducts(productResponse)
+        }
+      } catch {
+        if (isMounted) {
+          setCategories(mockCategories)
+          setProducts(mockProducts)
+        }
+      }
+    }
+
+    void loadHomeData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   return (
       <>
         <section
@@ -55,7 +90,7 @@ export function HomePage() {
           </div>
 
           <div className="category-preview-grid">
-            {mockCategories.map((category) => (
+            {categories.map((category) => (
                 <Link key={category.id} to={`/products?category=${category.id}`}>
                   <span>{category.name}</span>
                   <small>{category.description}</small>
@@ -71,7 +106,7 @@ export function HomePage() {
           </div>
 
           <div className="store-product-grid store-product-grid-compact">
-            {mockProducts.slice(0, 4).map((product) => (
+            {products.slice(0, 4).map((product) => (
                 <StoreProductCard key={product.id} product={product} />
             ))}
           </div>

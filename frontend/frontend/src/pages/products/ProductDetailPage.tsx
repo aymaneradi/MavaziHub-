@@ -20,6 +20,7 @@ export function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const [selectedVariantId, setSelectedVariantId] = useState<number | undefined>()
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
   const [cartMessage, setCartMessage] = useState('')
 
   useEffect(() => {
@@ -36,21 +37,24 @@ export function ProductDetailPage() {
 
         if (isMounted) {
           setDetail({ product, variants, isFallback: false })
+          setSelectedImageUrl(product.imageUrls?.[0] ?? product.imageUrl ?? null)
         }
       } catch {
         const mockProduct = mockProducts.find((product) => product.id === productId)
+        const mockProductDetail = mockProduct ? toProductDetail(mockProduct) : null
 
         if (isMounted) {
           setDetail(
-            mockProduct
+            mockProduct && mockProductDetail
               ? {
-                  product: toProductDetail(mockProduct),
+                  product: mockProductDetail,
                   mockProduct,
                   variants: mockVariants.filter((variant) => variant.productId === mockProduct.id),
                   isFallback: true,
                 }
               : null,
           )
+          setSelectedImageUrl(mockProductDetail?.imageUrls?.[0] ?? mockProductDetail?.imageUrl ?? null)
         }
       } finally {
         if (isMounted) {
@@ -81,15 +85,25 @@ export function ProductDetailPage() {
       return
     }
 
+    if (detail.variants.length > 0 && !selectedVariantId) {
+      setCartMessage('Bitte zuerst eine Variante auswählen.')
+      return
+    }
+
+    if (!Number.isFinite(quantity) || quantity < 1) {
+      setCartMessage('Bitte eine gültige Menge eingeben.')
+      return
+    }
+
     try {
       await cartApi.addItem({
         productId: detail.product.id,
         variantId: selectedVariantId,
-        quantity: Math.max(1, quantity),
+        quantity,
       })
       setCartMessage('Produkt wurde in den Warenkorb gelegt.')
     } catch {
-      setCartMessage('Warenkorb ist bereit, sobald du angemeldet bist.')
+      setCartMessage('Warenkorb konnte nicht aktualisiert werden. Bitte melde dich an und versuche es erneut.')
     }
   }
 
@@ -116,6 +130,15 @@ export function ProductDetailPage() {
   const palette = mockProduct?.palette ?? 'sunset'
   const material = mockProduct?.material ?? product.categoryName
   const stockQuantity = selectedVariant?.stockQuantity ?? product.stockQuantity
+  const canAddToCart = stockQuantity > 0 && (variants.length === 0 || selectedVariantId !== undefined)
+  const productImages = [
+    ...(product.imageUrl ? [product.imageUrl] : []),
+    ...(product.imageUrls ?? []),
+  ].filter((imageUrl, index, imageUrls) => imageUrl && imageUrls.indexOf(imageUrl) === index)
+  const activeImageUrl =
+    selectedImageUrl && productImages.includes(selectedImageUrl)
+      ? selectedImageUrl
+      : productImages[0] ?? null
 
   return (
       <>
@@ -127,8 +150,22 @@ export function ProductDetailPage() {
 
         <section className="product-detail-layout" style={{ margin: '0 20px 40px 20px' }}>
           <div className="product-detail-media">
-            {/* L'image locale s'affichera ici grâce au chemin /images/... que tu as mis en BDD */}
-            <ProductVisual imageUrl={product.imageUrl} palette={palette} label={product.name} />
+            <ProductVisual imageUrl={activeImageUrl} palette={palette} label={product.name} />
+            {productImages.length > 1 && (
+              <div className="product-gallery-thumbs" aria-label="Produktbilder">
+                {productImages.map((imageUrl, index) => (
+                  <button
+                    key={imageUrl}
+                    className={activeImageUrl === imageUrl ? 'active' : undefined}
+                    type="button"
+                    onClick={() => setSelectedImageUrl(imageUrl)}
+                    aria-label={`Produktbild ${index + 1} anzeigen`}
+                  >
+                    <ProductVisual imageUrl={imageUrl} palette={palette} label={`${product.name} ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="product-detail-info">
@@ -178,10 +215,13 @@ export function ProductDetailPage() {
                 max={Math.max(stockQuantity, 1)}
                 type="number"
                 value={quantity}
-                onChange={(event) => setQuantity(Number(event.target.value))}
+                onChange={(event) => {
+                  const nextQuantity = Number(event.target.value)
+                  setQuantity(Number.isFinite(nextQuantity) ? Math.max(1, nextQuantity) : 1)
+                }}
               />
             </label>
-            <button type="button" onClick={handleAddToCart}>
+            <button type="button" disabled={!canAddToCart} onClick={handleAddToCart}>
               In den Warenkorb
             </button>
           </div>

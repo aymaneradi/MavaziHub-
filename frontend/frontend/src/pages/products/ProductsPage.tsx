@@ -39,9 +39,9 @@ export function ProductsPage() {
           return
         }
 
-        setCategories(categoryResponse.length > 0 ? categoryResponse : mockCategories)
-        setProducts(productResponse.length > 0 ? productResponse : mockProducts)
-        setIsFallback(productResponse.length === 0)
+        setCategories(categoryResponse)
+        setProducts(productResponse)
+        setIsFallback(false)
       } catch {
         if (!isMounted) {
           return
@@ -98,7 +98,6 @@ export function ProductsPage() {
 
   return (
       <>
-        { }
         <section
             className="storefront-hero"
             style={{
@@ -113,13 +112,12 @@ export function ProductsPage() {
             }}
         >
           <div>
-            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p> { }
+            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p>
             <h1 style={{ color: 'white' }}>Afrikanische Stoffe, Mode und Accessoires für moderne Looks.</h1>
             <p style={{ color: '#f0f0f0' }}>
               Kuratierte Prints, klare Kategorien und Produkte, die sich schnell finden lassen.
             </p>
           </div>
-          { }
 
         </section>
 

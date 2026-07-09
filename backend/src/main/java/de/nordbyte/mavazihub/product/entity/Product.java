@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Repräsentiert ein Produkt im Produktkatalog.
@@ -36,6 +38,11 @@ public class Product {
     @Column(length = 500)
     private String imageUrl;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
+    private List<ProductImage> images = new ArrayList<>();
+
     @Column(nullable = false)
     private int stockQuantity;
 
@@ -63,6 +70,22 @@ public class Product {
         this.imageUrl = imageUrl;
         this.stockQuantity = stockQuantity;
         this.category = category;
+    }
+
+    /**
+     * Ersetzt alle Produktbilder in ihrer Anzeige-Reihenfolge.
+     */
+    public void replaceImages(List<String> imageUrls) {
+        images.clear();
+
+        for (int index = 0; index < imageUrls.size(); index++) {
+            images.add(ProductImage.builder()
+                    .product(this)
+                    .imageUrl(imageUrls.get(index))
+                    .altText(name)
+                    .sortOrder(index)
+                    .build());
+        }
     }
 
     /**

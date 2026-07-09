@@ -102,11 +102,13 @@ public class ProductService {
                 .name(name)
                 .description(normalizeOptionalText(request.getDescription()))
                 .price(request.getPrice())
-                .imageUrl(normalizeOptionalText(request.getImageUrl()))
+                .imageUrl(resolvePrimaryImageUrl(request.getImageUrl(), request.getImageUrls()))
                 .stockQuantity(request.getStockQuantity())
                 .active(true)
                 .category(category)
                 .build();
+
+        product.replaceImages(normalizeImageUrls(request.getImageUrl(), request.getImageUrls()));
 
         Product savedProduct = productRepository.save(product);
         return toProductDetailResponse(savedProduct);
@@ -130,10 +132,11 @@ public class ProductService {
                 name,
                 normalizeOptionalText(request.getDescription()),
                 request.getPrice(),
-                normalizeOptionalText(request.getImageUrl()),
+                resolvePrimaryImageUrl(request.getImageUrl(), request.getImageUrls()),
                 request.getStockQuantity(),
                 category
         );
+        product.replaceImages(normalizeImageUrls(request.getImageUrl(), request.getImageUrls()));
 
         Product savedProduct = productRepository.save(product);
         return toProductDetailResponse(savedProduct);
@@ -217,6 +220,7 @@ public class ProductService {
                 product.getName(),
                 product.getPrice(),
                 product.getImageUrl(),
+                toImageUrls(product),
                 product.getStockQuantity(),
                 product.getCategory().getId(),
                 product.getCategory().getName(),
@@ -234,6 +238,7 @@ public class ProductService {
                 product.getDescription(),
                 product.getPrice(),
                 product.getImageUrl(),
+                toImageUrls(product),
                 product.getStockQuantity(),
                 product.getCategory().getId(),
                 product.getCategory().getName(),
@@ -259,5 +264,47 @@ public class ProductService {
         }
 
         return value.trim();
+    }
+
+    /**
+     * Normalisiert Hauptbild und weitere Produktbilder in Anzeige-Reihenfolge.
+     */
+    private List<String> normalizeImageUrls(String imageUrl, List<String> imageUrls) {
+        List<String> normalizedUrls = new java.util.ArrayList<>();
+
+        addImageUrl(normalizedUrls, imageUrl);
+
+        if (imageUrls != null) {
+            imageUrls.forEach(url -> addImageUrl(normalizedUrls, url));
+        }
+
+        return normalizedUrls;
+    }
+
+    private String resolvePrimaryImageUrl(String imageUrl, List<String> imageUrls) {
+        List<String> normalizedUrls = normalizeImageUrls(imageUrl, imageUrls);
+        return normalizedUrls.isEmpty() ? null : normalizedUrls.get(0);
+    }
+
+    private void addImageUrl(List<String> imageUrls, String imageUrl) {
+        String normalizedImageUrl = normalizeOptionalText(imageUrl);
+
+        if (normalizedImageUrl != null && !imageUrls.contains(normalizedImageUrl)) {
+            imageUrls.add(normalizedImageUrl);
+        }
+    }
+
+    private List<String> toImageUrls(Product product) {
+        List<String> imageUrls = product.getImages()
+                .stream()
+                .map(image -> image.getImageUrl())
+                .toList();
+
+        if (!imageUrls.isEmpty()) {
+            return imageUrls;
+        }
+
+        String primaryImageUrl = normalizeOptionalText(product.getImageUrl());
+        return primaryImageUrl == null ? List.of() : List.of(primaryImageUrl);
     }
 }

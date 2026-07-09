@@ -2,6 +2,8 @@ package de.nordbyte.mavazihub.product.repository;
 
 import de.nordbyte.mavazihub.product.entity.ProductVariant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -38,11 +40,20 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
      */
     Optional<ProductVariant> findByIdAndActiveTrue(Long id);
 
-    // ProductVariantRepository.java — neue Methode ergänzen
-    boolean existsByProductIdAndSizeIgnoreCaseAndColorIgnoreCaseAndPatternIgnoreCase(
-            Long productId, String size, String color, String pattern );
-
-    // Und für Update-Fall (andere ID ausschließen):
-    boolean existsByProductIdAndSizeIgnoreCaseAndColorIgnoreCaseAndPatternIgnoreCaseAndIdNot(
-            Long productId, String size, String color, String pattern, Long id );
+    @Query("""
+            SELECT COUNT(variant) > 0
+            FROM ProductVariant variant
+            WHERE variant.product.id = :productId
+              AND (:ignoredVariantId IS NULL OR variant.id <> :ignoredVariantId)
+              AND lower(coalesce(variant.size, '')) = lower(coalesce(:size, ''))
+              AND lower(coalesce(variant.color, '')) = lower(coalesce(:color, ''))
+              AND lower(coalesce(variant.pattern, '')) = lower(coalesce(:pattern, ''))
+            """)
+    boolean existsByNormalizedAttributes(
+            @Param("productId") Long productId,
+            @Param("size") String size,
+            @Param("color") String color,
+            @Param("pattern") String pattern,
+            @Param("ignoredVariantId") Long ignoredVariantId
+    );
 }
