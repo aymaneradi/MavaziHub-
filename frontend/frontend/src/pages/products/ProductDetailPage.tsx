@@ -13,6 +13,40 @@ type DetailState = {
   isFallback: boolean
 }
 
+function getAvailabilityLabel(stockQuantity: number) {
+  if (stockQuantity <= 0) {
+    return 'Ausverkauft'
+  }
+
+  if (stockQuantity <= 10) {
+    return 'Nur noch wenige verfügbar'
+  }
+
+  return 'Auf Lager'
+}
+
+function getMarketingBadge(product: ProductDetailResponse, mockProduct?: StoreProduct) {
+  if (mockProduct?.tag) {
+    return mockProduct.tag
+  }
+
+  const badgeIndex = product.id % 4
+
+  if (badgeIndex === 0) {
+    return 'Neu'
+  }
+
+  if (badgeIndex === 1) {
+    return 'Beliebt'
+  }
+
+  if (badgeIndex === 2) {
+    return 'Bestseller'
+  }
+
+  return 'Limitierte Edition'
+}
+
 export function ProductDetailPage() {
   const { id } = useParams()
   const productId = Number(id)
@@ -38,10 +72,14 @@ export function ProductDetailPage() {
         if (isMounted) {
           setDetail({ product, variants, isFallback: false })
           setSelectedImageUrl(product.imageUrls?.[0] ?? product.imageUrl ?? null)
+          setSelectedVariantId(variants.find((variant) => variant.stockQuantity > 0)?.id)
         }
       } catch {
         const mockProduct = mockProducts.find((product) => product.id === productId)
         const mockProductDetail = mockProduct ? toProductDetail(mockProduct) : null
+        const variants = mockProduct
+          ? mockVariants.filter((variant) => variant.productId === mockProduct.id)
+          : []
 
         if (isMounted) {
           setDetail(
@@ -49,12 +87,13 @@ export function ProductDetailPage() {
               ? {
                   product: mockProductDetail,
                   mockProduct,
-                  variants: mockVariants.filter((variant) => variant.productId === mockProduct.id),
+                  variants,
                   isFallback: true,
                 }
               : null,
           )
           setSelectedImageUrl(mockProductDetail?.imageUrls?.[0] ?? mockProductDetail?.imageUrl ?? null)
+          setSelectedVariantId(variants.find((variant) => variant.stockQuantity > 0)?.id)
         }
       } finally {
         if (isMounted) {
@@ -95,11 +134,18 @@ export function ProductDetailPage() {
       return
     }
 
+    const requestedQuantity = Math.min(quantity, stockQuantity)
+
+    if (requestedQuantity < 1) {
+      setCartMessage('Diese Variante ist aktuell nicht verfügbar.')
+      return
+    }
+
     try {
       await cartApi.addItem({
         productId: detail.product.id,
         variantId: selectedVariantId,
-        quantity,
+        quantity: requestedQuantity,
       })
       setCartMessage('Produkt wurde in den Warenkorb gelegt.')
     } catch {
@@ -130,6 +176,8 @@ export function ProductDetailPage() {
   const palette = mockProduct?.palette ?? 'sunset'
   const material = mockProduct?.material ?? product.categoryName
   const stockQuantity = selectedVariant?.stockQuantity ?? product.stockQuantity
+  const availabilityLabel = getAvailabilityLabel(stockQuantity)
+  const marketingBadge = getMarketingBadge(product, mockProduct)
   const canAddToCart = stockQuantity > 0 && (variants.length === 0 || selectedVariantId !== undefined)
   const productImages = [
     ...(product.imageUrl ? [product.imageUrl] : []),
@@ -142,13 +190,12 @@ export function ProductDetailPage() {
 
   return (
       <>
-        <nav className="breadcrumb" style={{ margin: '20px', padding: '10px 0' }} aria-label="Breadcrumb">
-          <Link to="/products" style={{ color: '#8b4513', fontWeight: 'bold' }}>Produkte</Link>
-          <span style={{ margin: '0 10px' }}>/</span>
+        <nav className="breadcrumb" aria-label="Breadcrumb">
+          <Link to="/products">Produkte</Link>
           <span>{product.categoryName}</span>
         </nav>
 
-        <section className="product-detail-layout" style={{ margin: '0 20px 40px 20px' }}>
+        <section className="product-detail-layout">
           <div className="product-detail-media">
             <ProductVisual imageUrl={activeImageUrl} palette={palette} label={product.name} />
             {productImages.length > 1 && (
@@ -180,8 +227,12 @@ export function ProductDetailPage() {
               <dd>{material}</dd>
             </div>
             <div>
-              <dt>Bestand</dt>
-              <dd>{stockQuantity} verfügbar</dd>
+              <dt>Verfügbarkeit</dt>
+              <dd>{availabilityLabel}</dd>
+            </div>
+            <div>
+              <dt>Hinweis</dt>
+              <dd>{marketingBadge}</dd>
             </div>
             <div>
               <dt>Preis</dt>
@@ -217,7 +268,8 @@ export function ProductDetailPage() {
                 value={quantity}
                 onChange={(event) => {
                   const nextQuantity = Number(event.target.value)
-                  setQuantity(Number.isFinite(nextQuantity) ? Math.max(1, nextQuantity) : 1)
+                  const maxQuantity = Math.max(stockQuantity, 1)
+                  setQuantity(Number.isFinite(nextQuantity) ? Math.min(Math.max(1, nextQuantity), maxQuantity) : 1)
                 }}
               />
             </label>
@@ -227,7 +279,7 @@ export function ProductDetailPage() {
           </div>
 
           {cartMessage && <p className="cart-feedback">{cartMessage}</p>}
-          {isFallback && <p className="fallback-note">Demo-Produkt aus dem lokalen Katalog</p>}
+          {isFallback && <p className="fallback-note">Produktdaten sind momentan offline verfügbar.</p>}
         </div>
       </section>
     </>

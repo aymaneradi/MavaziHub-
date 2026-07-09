@@ -26,7 +26,7 @@ export function ProductsPage() {
   useEffect(() => {
     let isMounted = true
 
-    async function loadStorefront() {
+    async function loadProducts() {
       setIsLoading(true)
 
       try {
@@ -57,7 +57,7 @@ export function ProductsPage() {
       }
     }
 
-    void loadStorefront()
+    void loadProducts()
 
     return () => {
       isMounted = false
@@ -112,7 +112,7 @@ export function ProductsPage() {
             }}
         >
           <div>
-            <p className="eyebrow" style={{ color: '#FFD700' }}>Storefront</p>
+            <p className="eyebrow" style={{ color: '#FFD700' }}>Kollektion</p>
             <h1 style={{ color: 'white' }}>Afrikanische Stoffe, Mode und Accessoires für moderne Looks.</h1>
             <p style={{ color: '#f0f0f0' }}>
               Kuratierte Prints, klare Kategorien und Produkte, die sich schnell finden lassen.
@@ -148,7 +148,6 @@ export function ProductsPage() {
             {isLoading
                 ? 'Produkte werden geladen'
                 : `${visibleProducts.length} Produkte gefunden`}
-            {isFallback ? ' · Demo-Katalog aktiv' : ''}
           </p>
         </section>
 

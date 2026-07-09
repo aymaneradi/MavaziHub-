@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
 
@@ -11,6 +11,13 @@ const shopLinks = [
 
 export function Header() {
   const auth = useAuth()
+  const navigate = useNavigate()
+  const adminAreaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
+
+  async function handleLogout() {
+    await auth.logout()
+    navigate('/')
+  }
 
   return (
     <header className="site-header">
@@ -22,7 +29,16 @@ export function Header() {
         <p>Willkommen bei MavaziHub - afrikanische Mode, Stoffe und Accessoires</p>
         <div className="topbar-actions" aria-label="Schnellzugriff">
           <Link to="/products">Suchen</Link>
-          {auth.isAuthenticated ? <Link to="/profile">Profil</Link> : <Link to="/login">Anmelden</Link>}
+          {auth.isAuthenticated ? (
+            <>
+              <Link to="/profile">Mein Account</Link>
+              <button type="button" onClick={handleLogout}>
+                Ausloggen
+              </button>
+            </>
+          ) : (
+            <Link to="/login">Anmelden</Link>
+          )}
           <Link to="/cart">Warenkorb</Link>
         </div>
       </div>
@@ -47,7 +63,7 @@ export function Header() {
               {link.label}
             </NavLink>
           ))}
-          {auth.hasAnyRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && <NavLink to="/admin">Admin</NavLink>}
+          {auth.hasAnyRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && <NavLink to="/admin">{adminAreaLabel}</NavLink>}
         </nav>
       </div>
     </header>

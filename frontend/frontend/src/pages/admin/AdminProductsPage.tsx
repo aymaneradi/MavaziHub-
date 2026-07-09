@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { adminApi } from '../../api'
+import { useAuth } from '../../auth/AuthContext'
 import type { ProductResponse } from '../../types'
 
 const formatCurrency = (value: number) =>
   value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
 
 export function AdminProductsPage() {
+  const auth = useAuth()
   const [products, setProducts] = useState<ProductResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   async function loadProducts() {
     setIsLoading(true)
@@ -47,7 +50,7 @@ export function AdminProductsPage() {
     <section className="admin-workspace">
       <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Adminbereich</p>
+          <p className="eyebrow">{areaLabel}</p>
           <h1>Produkte</h1>
           <p>Produktkatalog verwalten, Produkte veröffentlichen und Lagerdetails öffnen.</p>
         </div>

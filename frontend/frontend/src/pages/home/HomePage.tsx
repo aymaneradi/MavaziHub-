@@ -61,7 +61,7 @@ export function HomePage() {
         >
           <div className="home-hero-copy" style={{ maxWidth: '800px' }}>
             <p className="eyebrow" style={{ color: '#FFD700', fontWeight: 'bold', marginBottom: '10px' }}>
-              MavaziHub Storefront
+              MavaziHub Kollektion
             </p>
             <h1 style={{ color: 'white', fontSize: '3.5rem', lineHeight: '1.2', marginBottom: '20px' }}>
               Afrikanische Prints, moderne Kleidung und kuratierte Accessoires.
@@ -79,8 +79,6 @@ export function HomePage() {
               </Link>
             </div>
           </div>
-
-          {/* Le bloc "home-hero-scene" a été supprimé pour laisser place à la photo de fond */}
         </section>
 
         <section className="category-preview" aria-labelledby="category-preview-title" style={{ padding: '40px 20px' }}>

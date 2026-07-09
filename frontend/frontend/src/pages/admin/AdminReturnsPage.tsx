@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { adminApi } from '../../api'
+import { useAuth } from '../../auth/AuthContext'
 import type { ReturnRequestResponseDTO } from '../../types'
 
 const returnStatuses = ['REQUESTED', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'COMPLETED']
@@ -11,10 +12,12 @@ const formatDate = (value: string) =>
   )
 
 export function AdminReturnsPage() {
+  const auth = useAuth()
   const [returns, setReturns] = useState<ReturnRequestResponseDTO[]>([])
   const [statusDrafts, setStatusDrafts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   useEffect(() => {
     async function loadReturns() {
@@ -49,7 +52,7 @@ export function AdminReturnsPage() {
     <section className="admin-workspace">
       <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Adminbereich</p>
+          <p className="eyebrow">{areaLabel}</p>
           <h1>Retouren</h1>
           <p>Rücksendeanfragen prüfen und Status im Backend aktualisieren.</p>
         </div>

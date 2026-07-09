@@ -17,7 +17,16 @@ function getMaterial(product: ProductResponse | StoreProduct) {
 }
 
 function getTag(product: ProductResponse | StoreProduct) {
-  return 'tag' in product ? product.tag : product.active ? 'Verfügbar' : 'Inaktiv'
+  if ('tag' in product) {
+    return product.tag
+  }
+
+  if (!product.active) {
+    return 'Inaktiv'
+  }
+
+  const badges = ['Beliebt', 'Bestseller', 'Limitierte Edition', 'Neu']
+  return badges[product.id % badges.length]
 }
 
 export function StoreProductCard({ product }: StoreProductCardProps) {

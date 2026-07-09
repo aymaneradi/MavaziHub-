@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { adminApi } from '../../api'
+import { useAuth } from '../../auth/AuthContext'
 import type { OrderResponse } from '../../types'
 
 const orderStatuses = ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
@@ -14,10 +15,12 @@ const formatDate = (value: string) =>
   )
 
 export function AdminOrdersPage() {
+  const auth = useAuth()
   const [orders, setOrders] = useState<OrderResponse[]>([])
   const [statusDrafts, setStatusDrafts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   useEffect(() => {
     async function loadOrders() {
@@ -50,7 +53,7 @@ export function AdminOrdersPage() {
     <section className="admin-workspace">
       <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Adminbereich</p>
+          <p className="eyebrow">{areaLabel}</p>
           <h1>Bestellungen</h1>
           <p>Status prüfen und Bestellungen fachlich weiterführen.</p>
         </div>

@@ -35,12 +35,13 @@ const dashboardLinks = [
 export function AdminDashboardPage() {
   const auth = useAuth()
   const visibleLinks = dashboardLinks.filter((link) => !link.roles || auth.hasAnyRole(link.roles))
+  const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   return (
     <section className="admin-workspace">
       <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Adminbereich</p>
+          <p className="eyebrow">{areaLabel}</p>
           <h1>Dashboard</h1>
           <p>Getrennter Verwaltungsbereich für Katalog, Bestellungen, Retouren und Nutzer.</p>
         </div>

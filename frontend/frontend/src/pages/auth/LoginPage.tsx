@@ -84,11 +84,6 @@ export function LoginPage() {
         </p>
       </div>
 
-      <aside className="auth-aside" aria-label="MavaziHub Vorteile">
-        <span>Bestellungen verfolgen</span>
-        <span>Rücksendungen verwalten</span>
-        <span>Rollen vorbereitet für Kunde, Mitarbeiter und Admin</span>
-      </aside>
     </section>
   )
 }

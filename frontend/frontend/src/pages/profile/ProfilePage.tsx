@@ -1,13 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
-import type { UserRole } from '../../types'
-
-const roleLabels: Record<UserRole, string> = {
-  ROLE_USER: 'Kunde',
-  ROLE_EMPLOYEE: 'Mitarbeiter',
-  ROLE_ADMIN: 'Admin',
-}
 
 export function ProfilePage() {
   const auth = useAuth()
@@ -22,6 +15,8 @@ export function ProfilePage() {
   if (!user) {
     return null
   }
+
+  const adminAreaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   return (
     <section className="profile-page">
@@ -58,12 +53,8 @@ export function ProfilePage() {
         </article>
 
         <article className="profile-panel">
-          <h2>Rollen</h2>
-          <div className="role-list">
-            {user.roles.map((role) => (
-              <span key={role}>{roleLabels[role]}</span>
-            ))}
-          </div>
+          <h2>Kundenkonto</h2>
+          <p>Dein Konto ist aktiv. Hier verwaltest du Bestellungen, Rücksendungen und deinen Warenkorb.</p>
         </article>
       </div>
 
@@ -71,7 +62,7 @@ export function ProfilePage() {
         <Link to="/orders">Bestellungen</Link>
         <Link to="/returns">Rücksendungen</Link>
         <Link to="/cart">Warenkorb</Link>
-        {auth.hasAnyRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && <Link to="/admin">Adminbereich</Link>}
+        {auth.hasAnyRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && <Link to="/admin">{adminAreaLabel}</Link>}
       </div>
     </section>
   )
