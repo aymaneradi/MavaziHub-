@@ -1,40 +1,46 @@
-import { axiosClient, clearAuthTokens, setAuthTokens } from './axiosClient'
-import type {
-  AuthResponse,
-  LoginRequest,
-  LogoutRequest,
-  RefreshRequest,
-  RegisterRequest,
-  UserResponse,
-} from '../types'
+import { axiosClient } from './axiosClient'
+import type { LoginRequest, RegisterRequest, UserResponse } from '../types'
 
+/**
+ * Auth-API nach Umstellung auf httpOnly Cookies.
+ */
 export const authApi = {
+
   async register(request: RegisterRequest): Promise<void> {
     await axiosClient.post('/auth/register', request)
   },
 
-  async login(request: LoginRequest): Promise<AuthResponse> {
-    const { data } = await axiosClient.post<AuthResponse>('/auth/login', request)
-    setAuthTokens(data.accessToken, data.refreshToken)
-    return data
+  /**
+   * Login: schickt E-Mail und Passwort, erhält drei Cookies zurück:
+   */
+  async login(request: LoginRequest): Promise<void> {
+    await axiosClient.post('/auth/login', request)
   },
 
-  async refresh(request: RefreshRequest): Promise<AuthResponse> {
-    const { data } = await axiosClient.post<AuthResponse>('/auth/refresh', request)
-    setAuthTokens(data.accessToken, data.refreshToken)
-    return data
+  /**
+   * Refresh: kein Body nötig.
+   * Der Browser schickt den refreshToken-Cookie automatisch mit.
+   * Das Backend setzt danach neue Cookies (Token Rotation).
+   */
+  async refresh(): Promise<void> {
+    await axiosClient.post('/auth/refresh')
   },
 
-  async logout(request: LogoutRequest): Promise<void> {
-    try {
-      await axiosClient.post('/auth/logout', request)
-    } finally {
-      clearAuthTokens()
-    }
+  /**
+   * Logout: kein Body nötig.
+   * Der Browser schickt den refreshToken-Cookie automatisch mit.
+   * Das Backend revoked den Token und löscht alle Cookies (MaxAge = 0).
+   */
+  async logout(): Promise<void> {
+    await axiosClient.post('/auth/logout')
   },
 
+  /**
+   * Gibt den aktuell eingeloggten User zurück.
+   * Der accessToken-Cookie wird automatisch mitgeschickt.
+   */
   async me(): Promise<UserResponse> {
-    const { data } = await axiosClient.get<UserResponse>('/auth/me')
+    const { data } = await axiosClient.get<UserResponse>('/users/me')
     return data
   },
 }

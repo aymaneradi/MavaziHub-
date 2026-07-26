@@ -1,14 +1,20 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 
 import { authApi } from '../api/authApi'
-import {
-  clearAuthTokens,
-  getAccessToken,
-  getRefreshToken,
-  setUnauthorizedHandler,
-} from '../api/axiosClient'
+import { setUnauthorizedHandler } from '../api/axiosClient'
 import type { LoginRequest, RegisterRequest, UserResponse, UserRole } from '../types'
+
+/**
+ * TOKEN-STRATEGIE (nach Umstellung auf httpOnly Cookies)
+ */
 
 type AuthContextValue = {
   user: UserResponse | null
@@ -32,49 +38,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  /**
+   * Lädt den aktuellen User über /users/me.
+   * Schlägt fehl wenn kein gültiger Access Token vorhanden ist und
+   * der Refresh ebenfalls fehlschlägt (z. B. Refresh Token abgelaufen).
+   */
   const reloadUser = useCallback(async () => {
-    if (!getAccessToken()) {
-      const refreshToken = getRefreshToken()
-
-      if (!refreshToken) {
-        setUser(null)
-        return
-      }
-
-      await authApi.refresh({ refreshToken })
-    }
-
     const currentUser = await authApi.me()
     setUser(currentUser)
   }, [])
 
   const login = useCallback(
-    async (request: LoginRequest) => {
-      await authApi.login(request)
-      await reloadUser()
-    },
-    [reloadUser],
+      async (request: LoginRequest) => {
+        // authApi.login() setzt die Cookies – danach User laden
+        await authApi.login(request)
+        await reloadUser()
+      },
+      [reloadUser],
   )
 
   const register = useCallback(async (request: RegisterRequest) => {
+    // Nur Registrierung – kein Auto-Login.
+    // Falls Auto-Login gewünscht: await authApi.login(...) + reloadUser()
     await authApi.register(request)
   }, [])
 
   const logout = useCallback(async () => {
-    const refreshToken = getRefreshToken()
-
     try {
-      if (refreshToken) {
-        await authApi.logout({ refreshToken })
-      } else {
-        clearAuthTokens()
-      }
+      // authApi.logout() revoked den Refresh Token im Backend
+      // und löscht alle drei Cookies (MaxAge = 0).
+      // Der X-CSRF-Token Header wird automatisch vom Interceptor gesetzt.
+      await authApi.logout()
     } finally {
+      // User-State zurücksetzen – auch wenn der Logout-Request fehlschlägt.
+      // Die Cookies sind dann zwar noch vorhanden, aber der lokale State
+      // zeigt den User als ausgeloggt.
       setUser(null)
     }
   }, [])
 
   useEffect(() => {
+    // unauthorizedHandler wird vom axiosClient aufgerufen wenn ein
+    // Refresh fehlschlägt (Refresh Token abgelaufen oder revoked).
+    // Dann User-State zurücksetzen → ProtectedRoute leitet zu /login.
     setUnauthorizedHandler(() => {
       setUser(null)
     })
@@ -83,7 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         await reloadUser()
       } catch {
-        clearAuthTokens()
+        // Kein gültiger Token → nicht eingeloggt, kein Fehler anzeigen
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -109,7 +115,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       register,
       logout,
       reloadUser,
-      hasAnyRole: (requiredRoles) => requiredRoles.some((role) => roles.includes(role)),
+      hasAnyRole: (requiredRoles) =>
+          requiredRoles.some((role) => roles.includes(role)),
     }
   }, [isLoading, login, logout, register, reloadUser, user])
 
