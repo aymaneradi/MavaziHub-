@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import axios from 'axios'
 
 import { cartApi, productApi } from '../../api'
 import { ProductVisual } from '../../components/product/ProductVisual'
@@ -45,6 +46,28 @@ function getMarketingBadge(product: ProductDetailResponse, mockProduct?: StorePr
   }
 
   return 'Limitierte Edition'
+}
+
+function getAddToCartErrorMessage(error: unknown) {
+  if (!axios.isAxiosError(error)) {
+    return 'Der Warenkorb konnte gerade nicht aktualisiert werden.'
+  }
+
+  const status = error.response?.status
+
+  if (status === 401) {
+    return 'Bitte melde dich an, um den Warenkorb zu nutzen.'
+  }
+
+  if (status === 400) {
+    return 'Diese Auswahl kann nicht in den Warenkorb gelegt werden.'
+  }
+
+  if (status === 409) {
+    return 'Die gewünschte Menge ist nicht mehr verfügbar.'
+  }
+
+  return 'Der Warenkorb konnte gerade nicht aktualisiert werden.'
 }
 
 export function ProductDetailPage() {
@@ -148,8 +171,8 @@ export function ProductDetailPage() {
         quantity: requestedQuantity,
       })
       setCartMessage('Produkt wurde in den Warenkorb gelegt.')
-    } catch {
-      setCartMessage('Warenkorb konnte nicht aktualisiert werden. Bitte melde dich an und versuche es erneut.')
+    } catch (error) {
+      setCartMessage(getAddToCartErrorMessage(error))
     }
   }
 
