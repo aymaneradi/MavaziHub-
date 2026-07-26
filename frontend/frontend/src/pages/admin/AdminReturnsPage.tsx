@@ -4,9 +4,10 @@ import { adminApi } from '../../api'
 import { useAuth } from '../../auth/AuthContext'
 import type { ReturnRequestResponseDTO } from '../../types'
 
-const returnStatuses = ['REQUESTED', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'COMPLETED']
+const returnStatuses = ['REQUESTED', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'RECEIVED', 'REFUNDED', 'COMPLETED']
 const returnStatusLabels: Record<string, string> = {
   REQUESTED: 'Beantragt',
+  IN_REVIEW: 'In Prüfung',
   APPROVED: 'Genehmigt',
   REJECTED: 'Abgelehnt',
   RECEIVED: 'Eingegangen',
@@ -25,6 +26,7 @@ export function AdminReturnsPage() {
   const [statusDrafts, setStatusDrafts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
   const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function AdminReturnsPage() {
         setReturns(response)
         setStatusDrafts(Object.fromEntries(response.map((returnRequest) => [returnRequest.id, returnRequest.status])))
       } catch {
+        setMessageTone('error')
         setMessage('Retouren konnten nicht geladen werden.')
       } finally {
         setIsLoading(false)
@@ -51,7 +54,10 @@ export function AdminReturnsPage() {
       setReturns((current) =>
         current.map((returnRequest) => (returnRequest.id === returnId ? updated : returnRequest)),
       )
+      setMessageTone('success')
+      setMessage('Retourenstatus wurde gespeichert.')
     } catch {
+      setMessageTone('error')
       setMessage('Retourenstatus konnte nicht gespeichert werden.')
     }
   }
@@ -66,7 +72,7 @@ export function AdminReturnsPage() {
         </div>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <div className="admin-panel">
         {isLoading ? (

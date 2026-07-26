@@ -25,6 +25,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
      */
     List<ProductVariant> findAllByProductIdOrderBySizeAscColorAscPatternAsc(Long productId);
 
+    boolean existsByProductIdAndActiveTrue(Long productId);
+
     /**
      * Sucht eine Variante anhand ihrer ID und Produkt-ID.
      */

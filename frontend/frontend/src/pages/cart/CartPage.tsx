@@ -9,9 +9,17 @@ const formatCurrency = (value: number) =>
 
 export function CartPage() {
   const [cart, setCart] = useState<CartResponse | null>(null)
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<UUID, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [activeItemId, setActiveItemId] = useState<UUID | null>(null)
   const [message, setMessage] = useState('')
+
+  function applyCart(nextCart: CartResponse) {
+    setCart(nextCart)
+    setQuantityDrafts(
+      Object.fromEntries(nextCart.items.map((item) => [item.id, String(item.quantity)])),
+    )
+  }
 
   async function loadCart() {
     setIsLoading(true)
@@ -19,10 +27,10 @@ export function CartPage() {
 
     try {
       const response = await cartApi.getCart()
-      setCart(response)
+      applyCart(response)
     } catch {
       setMessage('Der Warenkorb konnte gerade nicht geladen werden.')
-      setCart({ items: [], totalPrice: 0 })
+      applyCart({ items: [], totalPrice: 0 })
     } finally {
       setIsLoading(false)
     }
@@ -42,11 +50,25 @@ export function CartPage() {
 
     try {
       const response = await cartApi.updateItemQuantity(itemId, quantity)
-      setCart(response)
+      applyCart(response)
     } catch {
       setMessage('Die Menge konnte nicht aktualisiert werden.')
     } finally {
       setActiveItemId(null)
+    }
+  }
+
+  async function commitQuantity(itemId: UUID, fallbackQuantity: number) {
+    const nextQuantity = Number(quantityDrafts[itemId])
+
+    if (!Number.isInteger(nextQuantity) || nextQuantity < 1) {
+      setQuantityDrafts((current) => ({ ...current, [itemId]: String(fallbackQuantity) }))
+      setMessage('Bitte gib eine Menge ab 1 ein.')
+      return
+    }
+
+    if (nextQuantity !== fallbackQuantity) {
+      await updateQuantity(itemId, nextQuantity)
     }
   }
 
@@ -56,7 +78,7 @@ export function CartPage() {
 
     try {
       const response = await cartApi.removeItem(itemId)
-      setCart(response)
+      applyCart(response)
     } catch {
       setMessage('Der Artikel konnte nicht entfernt werden.')
     } finally {
@@ -69,7 +91,7 @@ export function CartPage() {
 
     try {
       await cartApi.clearCart()
-      setCart({ items: [], totalPrice: 0 })
+      applyCart({ items: [], totalPrice: 0 })
     } catch {
       setMessage('Der Warenkorb konnte nicht geleert werden.')
     }
@@ -92,8 +114,15 @@ export function CartPage() {
       {message && <p className="commerce-message" role="status">{message}</p>}
 
       {isLoading ? (
-        <div className="commerce-empty">
-          <h2>Warenkorb wird geladen</h2>
+        <div className="cart-skeleton-list" aria-label="Warenkorb wird geladen">
+          {[0, 1, 2].map((item) => (
+            <article className="cart-item cart-item-skeleton" key={item} aria-hidden="true">
+              <span className="skeleton-line wide" />
+              <span className="skeleton-line short" />
+              <span className="skeleton-line short" />
+              <span className="skeleton-line short" />
+            </article>
+          ))}
         </div>
       ) : isEmpty ? (
         <div className="commerce-empty">
@@ -124,10 +153,23 @@ export function CartPage() {
                   </button>
                   <input
                     disabled={activeItemId === item.id}
+                    inputMode="numeric"
                     min="1"
+                    pattern="[0-9]*"
                     type="number"
-                    value={item.quantity}
-                    onChange={(event) => updateQuantity(item.id, Number(event.target.value))}
+                    value={quantityDrafts[item.id] ?? String(item.quantity)}
+                    onBlur={() => void commitQuantity(item.id, item.quantity)}
+                    onChange={(event) =>
+                      setQuantityDrafts((current) => ({
+                        ...current,
+                        [item.id]: event.target.value.replace(/\D/g, ''),
+                      }))
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.currentTarget.blur()
+                      }
+                    }}
                   />
                   <button
                     disabled={activeItemId === item.id}

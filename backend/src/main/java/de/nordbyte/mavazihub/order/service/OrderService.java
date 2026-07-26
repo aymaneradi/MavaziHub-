@@ -21,11 +21,21 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+
+    private static final Set<String> ALLOWED_ORDER_STATUSES = Set.of(
+            "CREATED",
+            "PAID",
+            "PROCESSING",
+            "SHIPPED",
+            "DELIVERED",
+            "CANCELLED"
+    );
 
     private final OrderRepository    orderRepository;
     private final CartItemRepository cartItemRepository;
@@ -111,7 +121,8 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bestellung nicht gefunden mit ID: " + id));
 
-        order.setStatus(status.trim().toUpperCase());
+        String normalizedStatus = normalizeOrderStatus(status);
+        order.setStatus(normalizedStatus);
         return toResponse(orderRepository.save(order));
     }
 
@@ -169,6 +180,20 @@ public class OrderService {
         }
 
         productService.reduceStock(cartItem.getProductId(), cartItem.getQuantity());
+    }
+
+    private String normalizeOrderStatus(String status) {
+        if (status == null || status.isBlank()) {
+            throw new BusinessException("Bestellstatus darf nicht leer sein.");
+        }
+
+        String normalizedStatus = status.trim().toUpperCase();
+
+        if (!ALLOWED_ORDER_STATUSES.contains(normalizedStatus)) {
+            throw new BusinessException("Unbekannter Bestellstatus: " + status);
+        }
+
+        return normalizedStatus;
     }
 
 }

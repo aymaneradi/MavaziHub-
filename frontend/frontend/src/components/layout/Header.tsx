@@ -5,6 +5,9 @@ import { useAuth } from '../../auth/AuthContext'
 const shopLinks = [
   { to: '/', label: 'Start' },
   { to: '/products', label: 'Produkte' },
+]
+
+const customerLinks = [
   { to: '/orders', label: 'Bestellungen' },
   { to: '/returns', label: 'Rücksendungen' },
 ]
@@ -28,9 +31,9 @@ export function Header() {
       <div className="topbar">
         <p>Willkommen bei MavaziHub - afrikanische Mode, Stoffe und Accessoires</p>
         <div className="topbar-actions" aria-label="Schnellzugriff">
-          <Link to="/products">Suchen</Link>
           {auth.isAuthenticated ? (
             <>
+              <Link to="/products">Suchen</Link>
               <Link to="/profile">Mein Account</Link>
               <button type="button" onClick={handleLogout}>
                 Ausloggen
@@ -63,6 +66,16 @@ export function Header() {
               {link.label}
             </NavLink>
           ))}
+          {auth.isAuthenticated &&
+            customerLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => (isActive ? 'active' : undefined)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
           {auth.hasAnyRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && <NavLink to="/admin">{adminAreaLabel}</NavLink>}
         </nav>
       </div>

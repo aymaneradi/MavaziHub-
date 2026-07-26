@@ -2,7 +2,6 @@ package de.nordbyte.mavazihub.auth.service;
 
 import de.nordbyte.mavazihub.auth.dto.AuthResponse;
 import de.nordbyte.mavazihub.auth.dto.LoginRequest;
-import de.nordbyte.mavazihub.auth.dto.LogoutRequest;
 import de.nordbyte.mavazihub.auth.dto.RegisterRequest;
 import de.nordbyte.mavazihub.auth.security.jwt.JwtProperties;
 import de.nordbyte.mavazihub.auth.security.jwt.JwtService;
@@ -10,7 +9,6 @@ import de.nordbyte.mavazihub.common.exception.EmailAlreadyExistsException;
 import de.nordbyte.mavazihub.role.entity.Role;
 import de.nordbyte.mavazihub.role.entity.RoleName;
 import de.nordbyte.mavazihub.role.repository.RoleRepository;
-import de.nordbyte.mavazihub.token.dto.RefreshRequest;
 import de.nordbyte.mavazihub.token.entity.RefreshToken;
 import de.nordbyte.mavazihub.token.service.RefreshTokenServiceImpl;
 import de.nordbyte.mavazihub.user.entity.User;
@@ -18,6 +16,8 @@ import de.nordbyte.mavazihub.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +28,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AuthServiceImpl implements AuthService{
+public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,7 +39,7 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public void register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())){
+        if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException(request.email());
         }
 
@@ -69,14 +69,14 @@ public class AuthServiceImpl implements AuthService{
         );
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(()-> new UsernameNotFoundException(
+                .orElseThrow(() -> new UsernameNotFoundException(
                         "User not found"
                 ));
 
         String accessToken = jwtService.generateAccessToken(user.getEmail());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return  new AuthResponse(
+        return new AuthResponse(
                 accessToken,
                 refreshToken.getToken(),
                 jwtProperties.getAccessTokenExpiration()
@@ -84,14 +84,23 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public AuthResponse refresh(RefreshRequest request) {
+    public AuthResponse refresh(String refreshToken) {
 
-        User user = refreshTokenService.validateRefreshToken(request.refreshToken()).getUser();
+        User user = refreshTokenService.validateRefreshToken(refreshToken).getUser();
 
-        // Alten Token invalidieren – Rotation verhindert Wiederverwendung
-        refreshTokenService.revokeRefreshToken(request.refreshToken());
+        if (!user.isEnabled()) {
+            refreshTokenService.revokeRefreshToken(refreshToken);
+            throw new DisabledException("User account is disabled");
+        }
 
-        String newAccessToken  = jwtService.generateAccessToken(user.getEmail());
+        if (user.isAccountLocked()) {
+            refreshTokenService.revokeRefreshToken(refreshToken);
+            throw new LockedException("User account is locked");
+        }
+
+        refreshTokenService.revokeRefreshToken(refreshToken);
+
+        String newAccessToken = jwtService.generateAccessToken(user.getEmail());
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
 
         return new AuthResponse(
@@ -102,7 +111,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public void logout(LogoutRequest request) {
-        refreshTokenService.revokeRefreshToken(request.refreshToken());
+    public void logout(String refreshToken) {
+        refreshTokenService.revokeRefreshToken(refreshToken);
     }
 }

@@ -20,12 +20,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ReturnRequestService {
+
+    private static final Set<String> ALLOWED_RETURN_STATUSES = Set.of(
+            "REQUESTED",
+            "IN_REVIEW",
+            "APPROVED",
+            "REJECTED",
+            "RECEIVED",
+            "REFUNDED",
+            "COMPLETED"
+    );
 
     private final ReturnRequestRepository returnRequestRepository;
     private final ReturnItemRepository returnItemRepository;
@@ -140,7 +151,7 @@ public class ReturnRequestService {
         ReturnRequest returnRequest = returnRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ruecksendung nicht gefunden mit ID: " + id));
 
-        returnRequest.setStatus(status.trim().toUpperCase());
+        returnRequest.setStatus(normalizeReturnStatus(status));
         return toResponse(returnRequestRepository.save(returnRequest));
     }
 
@@ -164,5 +175,19 @@ public class ReturnRequestService {
 
         dto.setItems(items);
         return dto;
+    }
+
+    private String normalizeReturnStatus(String status) {
+        if (status == null || status.isBlank()) {
+            throw new BusinessException("Retourenstatus darf nicht leer sein.");
+        }
+
+        String normalizedStatus = status.trim().toUpperCase();
+
+        if (!ALLOWED_RETURN_STATUSES.contains(normalizedStatus)) {
+            throw new BusinessException("Unbekannter Retourenstatus: " + status);
+        }
+
+        return normalizedStatus;
     }
 }

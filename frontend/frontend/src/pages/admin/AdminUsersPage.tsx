@@ -10,6 +10,7 @@ export function AdminUsersPage() {
   const [roleDrafts, setRoleDrafts] = useState<Record<string, UserRole[]>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
 
   async function loadUsers() {
     try {
@@ -17,6 +18,7 @@ export function AdminUsersPage() {
       setUsers(response)
       setRoleDrafts(Object.fromEntries(response.map((user) => [user.id, user.roles])))
     } catch {
+      setMessageTone('error')
       setMessage('Nutzer konnten nicht geladen werden.')
     } finally {
       setIsLoading(false)
@@ -44,7 +46,10 @@ export function AdminUsersPage() {
     try {
       const updated = await adminApi.updateUserRoles(userId, { roles: roleDrafts[userId] ?? [] })
       setUsers((current) => current.map((user) => (user.id === userId ? updated : user)))
+      setMessageTone('success')
+      setMessage('Rollen wurden gespeichert.')
     } catch {
+      setMessageTone('error')
       setMessage('Rollen konnten nicht gespeichert werden.')
     }
   }
@@ -62,7 +67,10 @@ export function AdminUsersPage() {
       setUsers((current) =>
         current.map((item) => (item.id === user.id ? { ...item, enabled: !item.enabled } : item)),
       )
+      setMessageTone('success')
+      setMessage(user.enabled ? 'Nutzer wurde deaktiviert.' : 'Nutzer wurde aktiviert.')
     } catch {
+      setMessageTone('error')
       setMessage('Nutzerstatus konnte nicht geändert werden.')
     }
   }
@@ -77,7 +85,7 @@ export function AdminUsersPage() {
         </div>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <div className="admin-panel">
         {isLoading ? (

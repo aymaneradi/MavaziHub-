@@ -16,6 +16,7 @@ const formatDate = (value: string) =>
 const returnStatusLabel = (status: string) =>
   ({
     REQUESTED: 'Beantragt',
+    IN_REVIEW: 'In Prüfung',
     APPROVED: 'Genehmigt',
     REJECTED: 'Abgelehnt',
     RECEIVED: 'Eingegangen',

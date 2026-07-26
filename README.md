@@ -39,6 +39,7 @@ POSTGRES_PORT      Host-Port für PostgreSQL, aktuell 5433
 BACKEND_PORT       Dokumentation des Backend-Ports, aktuell 8080
 FRONTEND_PORT      Dokumentation des Frontend-Ports, aktuell 5173
 JWT_SECRET_KEY     Base64URL-kodierter JWT-Schlüssel für Signaturen
+MAVAZIHUB_MEDIA_DIR lokaler Ordner für hochgeladene Produktbilder, Standard ./media
 ```
 
 Das Backend liest diese Werte in `backend/src/main/resources/application.yaml`. Wichtig ist besonders `JWT_SECRET_KEY`; der Name muss exakt so heißen.
@@ -100,6 +101,7 @@ Backend prüfen:
 ```txt
 http://localhost:8080/api/health
 http://localhost:8080/api/health/db
+http://localhost:8080/swagger-ui/index.html
 ```
 
 Erwartung:
@@ -107,6 +109,25 @@ Erwartung:
 ```txt
 /api/health     meldet status UP
 /api/health/db  meldet status UP, wenn PostgreSQL erreichbar ist
+Swagger UI      zeigt die dokumentierten REST-Endpunkte
+```
+
+## Produktbilder hochladen
+
+Admins und Mitarbeiter können im Adminbereich lokale Produktbilder hochladen. Das Backend speichert die Dateien im lokalen Medienordner und liefert sie über `/media/products/...` aus.
+
+Standard lokal:
+
+```txt
+media/products/
+```
+
+Der Ordner ist in `.gitignore` ausgeschlossen. Im Repository werden also nicht die hochgeladenen Dateien gespeichert, sondern nur die Bildadressen in der Datenbank.
+
+Optional kann der Speicherort gesetzt werden:
+
+```powershell
+$env:MAVAZIHUB_MEDIA_DIR="C:\dev\mavazihub-media"
 ```
 
 ## Frontend starten
@@ -167,7 +188,20 @@ docker compose exec postgres psql -U mavazihub_user -d mavazihub -c "INSERT INTO
 
 Alternativ kann der Admin später im Adminbereich unter `/admin/users` Rollen vergeben.
 
-Nach Rollenänderungen ausloggen und wieder einloggen, damit das Frontend die Rollen frisch über `GET /api/auth/me` lädt.
+Nach Rollenänderungen ausloggen und wieder einloggen, damit das Frontend die Rollen frisch über `GET /api/users/me` lädt.
+
+## Authentifizierung und Token
+
+Das Frontend speichert keine JWTs dauerhaft in `localStorage`. Nach dem Login setzt das Backend zwei httpOnly-Cookies:
+
+```txt
+accessToken   kurzlebiger JWT für geschützte API-Anfragen
+refreshToken  länger gültiger Token für Session-Erneuerung
+```
+
+Zusätzlich setzt das Backend einen lesbaren `csrfToken`-Cookie. Das Frontend schickt diesen Wert bei schreibenden Anfragen als `X-CSRF-Token`-Header mit.
+
+Wenn der Access Token abläuft, versucht das Frontend automatisch `POST /api/auth/refresh`. Das Backend rotiert dabei den Refresh Token und setzt neue Cookies. Beim Logout wird der Refresh Token widerrufen und alle Auth-Cookies werden gelöscht.
 
 ## Rollenmodell
 
@@ -236,6 +270,7 @@ Produktübersicht /products öffnen
 Suche verwenden
 Kategorie wechseln
 Produktdetail öffnen
+Falls Admin/Employee: lokales Produktbild hochladen und Produkt speichern
 ```
 
 Erwartung:
@@ -244,7 +279,8 @@ Erwartung:
 Seiten laden ohne Fehler
 Produkte werden angezeigt
 Filter verändern die Produktliste
-Produktdetail zeigt Preis, Kategorie, Bestand und Varianten
+Produktdetail zeigt Preis, Kategorie, Verfügbarkeit, Varianten und mehrere Bilder
+Hochgeladene Produktbilder erscheinen ohne kaputtes Bildsymbol
 ```
 
 ### 2. Authentifizierung
@@ -261,7 +297,7 @@ Erwartung:
 
 ```txt
 Registrierung erstellt normales ROLE_USER-Konto
-Login lädt Nutzerdaten und Rollen
+Login setzt Auth-Cookies und lädt Nutzerdaten sowie Rollen
 Profil ist nur eingeloggt erreichbar
 Falscher Login zeigt Fehlermeldung
 Logout entfernt den Zugriff auf geschützte Seiten
@@ -305,9 +341,9 @@ Erwartung:
 
 ```txt
 Bestellhistorie zeigt abgeschlossene Bestellungen
-Detailseite zeigt Positionen
+Detailseite zeigt Positionen und eine Status-Timeline
 Rücksendung wird über POST /api/returns angelegt
-Meine Rücksendungen zeigt Status REQUESTED
+Meine Rücksendungen zeigt den aktuellen Status als Timeline
 ```
 
 ### 5. Admin als Employee
@@ -340,6 +376,7 @@ Mit `admin@mavazihub.test` einloggen.
 /admin öffnen
 Produkt anlegen
 Produkt bearbeiten
+Lokale Produktbilder hochladen
 Produkt veröffentlichen/deaktivieren
 Variante anlegen
 Lagerbestand ändern
@@ -348,6 +385,7 @@ Bestellstatus ändern
 Retourenstatus ändern
 Nutzerrollen ändern
 Nutzer aktivieren/deaktivieren
+Mit deaktiviertem Nutzer erneut einloggen
 ```
 
 Erwartung:
@@ -355,8 +393,10 @@ Erwartung:
 ```txt
 Admin sieht alle Adminmenüpunkte
 Produkt- und Kategorieänderungen werden gespeichert
+Hochgeladene Produktbilder werden als Bildadressen übernommen
 Bestellstatus und Retourenstatus werden gespeichert
 Rollenänderungen wirken nach erneutem Login
+Deaktivierte Nutzer können sich nicht mehr anmelden
 ```
 
 ### 7. Responsive und Tastaturbedienung
@@ -392,7 +432,8 @@ Tabellen im Adminbereich bleiben auf kleinen Bildschirmen horizontal scrollbar
 ```txt
 Produkt löschen ist nicht im UI, weil kein finaler Backend-Endpunkt definiert ist.
 Kategorie löschen ist nicht im UI, weil kein finaler Backend-Endpunkt definiert ist.
-Bild-Upload ist nicht implementiert; Produkte nutzen aktuell imageUrl.
+Produktbilder werden lokal im Medienordner gespeichert; eine Cloud- oder CDN-Anbindung ist nicht Teil der Laborversion.
 Der erste Admin muss initial per Datenbankrolle gesetzt werden.
 Wenn ein Nutzer seine E-Mail ändert, sollte er sich neu einloggen, weil JWTs aktuell die E-Mail als Subject verwenden.
+Cookie Secure ist lokal deaktiviert, damit die Entwicklung über http://localhost funktioniert; produktiv müsste HTTPS genutzt werden.
 ```

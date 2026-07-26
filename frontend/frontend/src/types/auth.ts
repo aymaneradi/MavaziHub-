@@ -22,16 +22,4 @@ export type RegisterRequest = {
   password: string
 }
 
-export type RefreshRequest = {
-  refreshToken: string
-}
-
-export type LogoutRequest = RefreshRequest
-
-export type AuthResponse = {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
-}
-
 export type { UserResponse }

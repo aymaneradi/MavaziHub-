@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { adminApi } from '../../api'
@@ -35,9 +35,11 @@ export function AdminProductVariantsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
 
   async function loadData() {
     if (!Number.isFinite(productId)) {
+      setMessageTone('error')
       setMessage('Ungültige Produkt-ID.')
       setIsLoading(false)
       return
@@ -56,6 +58,7 @@ export function AdminProductVariantsPage() {
         ),
       )
     } catch {
+      setMessageTone('error')
       setMessage('Fehler beim Laden des Produkts.')
     } finally {
       setIsLoading(false)
@@ -92,11 +95,13 @@ export function AdminProductVariantsPage() {
     }
 
     if (!request.size && !request.color && !request.pattern) {
+      setMessageTone('error')
       setMessage('Bitte mindestens Größe, Farbe oder Muster angeben.')
       return
     }
 
     if (!Number.isFinite(form.stockQuantity) || form.stockQuantity < 0) {
+      setMessageTone('error')
       setMessage('Der Bestand darf nicht negativ sein.')
       return
     }
@@ -109,18 +114,21 @@ export function AdminProductVariantsPage() {
         await adminApi.updateVariantStock(productId, editingVariantId, {
           stockQuantity: form.stockQuantity,
         })
+        setMessageTone('success')
         setMessage('Variante wurde aktualisiert.')
       } else {
         await adminApi.createVariant(productId, {
           ...request,
           stockQuantity: form.stockQuantity,
         })
+        setMessageTone('success')
         setMessage('Variante wurde angelegt.')
       }
 
       resetForm()
       await loadData()
     } catch {
+      setMessageTone('error')
       setMessage('Variante konnte nicht gespeichert werden.')
     } finally {
       setIsSaving(false)
@@ -128,34 +136,43 @@ export function AdminProductVariantsPage() {
   }
 
   async function saveStock(variantId: number) {
+    setMessage('')
     const stockQuantity = stockInputs[variantId]
 
     if (!Number.isFinite(stockQuantity) || stockQuantity < 0) {
+      setMessageTone('error')
       setMessage('Der Bestand darf nicht negativ sein.')
       return
     }
 
     try {
       await adminApi.updateVariantStock(productId, variantId, { stockQuantity })
+      setMessageTone('success')
       setMessage('Bestand wurde gespeichert.')
       await loadData()
     } catch {
+      setMessageTone('error')
       setMessage('Fehler beim Speichern des Lagerbestands.')
     }
   }
 
   async function toggleVariant(variant: ProductVariantResponse) {
+    setMessage('')
+
     try {
       if (variant.active) {
         await adminApi.deactivateVariant(productId, variant.id)
+        setMessageTone('success')
         setMessage('Variante wurde deaktiviert.')
       } else {
         await adminApi.activateVariant(productId, variant.id)
+        setMessageTone('success')
         setMessage('Variante wurde aktiviert.')
       }
 
       await loadData()
     } catch {
+      setMessageTone('error')
       setMessage('Status der Variante konnte nicht geändert werden.')
     }
   }
@@ -177,7 +194,7 @@ export function AdminProductVariantsPage() {
         </Link>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <form className="admin-panel admin-form" onSubmit={submitVariant}>
         <label>

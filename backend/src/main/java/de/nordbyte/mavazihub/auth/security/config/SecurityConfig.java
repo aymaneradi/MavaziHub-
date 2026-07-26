@@ -1,6 +1,9 @@
 package de.nordbyte.mavazihub.auth.security.config;
+
+import de.nordbyte.mavazihub.auth.security.filter.CsrfValidationFilter;
 import de.nordbyte.mavazihub.auth.security.filter.JwtAuthenticationFilter;
 import de.nordbyte.mavazihub.auth.security.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,9 +30,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CsrfValidationFilter csrfValidationFilter;
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,9 +42,23 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"status\":401,\"error\":\"Unauthorized\"," +
+                                            "\"message\":\"Authentication required\"}"
+                            );
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
                         //Öffentliche Endpoints
                         .requestMatchers("/api/health/**").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
@@ -58,6 +75,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(csrfValidationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -68,8 +86,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-CSRF-Token"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

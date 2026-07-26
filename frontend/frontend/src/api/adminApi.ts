@@ -8,6 +8,7 @@ import type {
   CreateProductVariantRequest,
   OrderResponse,
   ProductDetailResponse,
+  ProductImageUploadResponse,
   ProductResponse,
   ProductVariantResponse,
   ReturnRequestResponseDTO,
@@ -57,6 +58,17 @@ export const adminApi = {
 
   async updateProduct(id: number, request: UpdateProductRequest): Promise<ProductDetailResponse> {
     const { data } = await axiosClient.put<ProductDetailResponse>(`/admin/products/${id}`, request)
+    return data
+  },
+
+  async uploadProductImage(file: File): Promise<ProductImageUploadResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const { data } = await axiosClient.post<ProductImageUploadResponse>(
+      '/admin/products/images',
+      formData,
+    )
     return data
   },
 

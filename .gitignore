@@ -32,3 +32,4 @@ logs/
 # Docker / temporary
 *.pid
 *.tmp
+media/

@@ -4,9 +4,10 @@ type ProductVisualProps = {
   imageUrl?: string | null
   palette?: string
   label: string
+  caption?: string
 }
 
-export function ProductVisual({ imageUrl, palette = 'sunset', label }: ProductVisualProps) {
+export function ProductVisual({ imageUrl, palette = 'sunset', label, caption }: ProductVisualProps) {
   const [hasImageError, setHasImageError] = useState(false)
 
   useEffect(() => {
@@ -25,8 +26,16 @@ export function ProductVisual({ imageUrl, palette = 'sunset', label }: ProductVi
   }
 
   return (
-    <div className={`store-product-art store-product-art-${palette}`} aria-label={label}>
-      <span />
+    <div
+      className={`store-product-art store-product-art-${palette}`}
+      role="img"
+      aria-label={[label, caption].filter(Boolean).join(', ')}
+    >
+      <span className="store-product-art-shape" aria-hidden="true" />
+      <span className="store-product-art-label" aria-hidden="true">
+        <strong>{label}</strong>
+        {caption && <small>{caption}</small>}
+      </span>
     </div>
   )
 }

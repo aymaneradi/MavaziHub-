@@ -1,15 +1,19 @@
 package de.nordbyte.mavazihub.product.controller;
 
 import de.nordbyte.mavazihub.product.dto.CreateProductRequest;
+import de.nordbyte.mavazihub.product.dto.ProductImageUploadResponse;
 import de.nordbyte.mavazihub.product.dto.ProductDetailResponse;
 import de.nordbyte.mavazihub.product.dto.ProductResponse;
 import de.nordbyte.mavazihub.product.dto.UpdateProductRequest;
+import de.nordbyte.mavazihub.product.service.ProductImageStorageService;
 import de.nordbyte.mavazihub.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +26,7 @@ import java.util.List;
 public class AdminProductController {
 
     private final ProductService productService;
+    private final ProductImageStorageService productImageStorageService;
 
     /**
      * Gibt alle Produkte für die Verwaltung zurück.
@@ -59,6 +64,14 @@ public class AdminProductController {
             @Valid @RequestBody UpdateProductRequest request
     ) {
         return ResponseEntity.ok(productService.updateProduct(id, request));
+    }
+
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductImageUploadResponse> uploadProductImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+        ProductImageUploadResponse response = productImageStorageService.storeProductImage(file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

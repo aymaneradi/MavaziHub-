@@ -1,9 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-/**
- * TOKEN-STRATEGIE (nach Umstellung auf httpOnly Cookies)
- */
-
 type UnauthorizedHandler = () => void
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean
@@ -16,10 +12,6 @@ export const setUnauthorizedHandler = (handler?: UnauthorizedHandler) => {
   unauthorizedHandler = handler
 }
 
-/**
- * Liest den CSRF-Token aus dem csrfToken-Cookie.
- * Dieser Cookie ist NICHT httpOnly, damit JS ihn lesen kann.
- */
 function getCsrfToken(): string | null {
   const match = document.cookie
       .split(';')
@@ -29,12 +21,6 @@ function getCsrfToken(): string | null {
   return match ? match.split('=')[1] : null
 }
 
-/**
- * Versucht den Access Token über den Refresh Token zu erneuern.
- * Da beide Tokens httpOnly Cookies sind, braucht das Frontend
- * keinen Body mitzuschicken – der Browser schickt die Cookies automatisch.
- * Gibt true zurück wenn der Refresh erfolgreich war, sonst false.
- */
 async function attemptRefresh(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = axios
@@ -43,8 +29,6 @@ async function attemptRefresh(): Promise<boolean> {
             {},
             {
               withCredentials: true,
-              // Kein X-CSRF-Token für /auth/refresh nötig –
-              // der Endpoint ist in CsrfValidationFilter.EXCLUDED_PATHS
             },
         )
         .then(() => true)
@@ -62,17 +46,14 @@ export const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // withCredentials: true ist zwingend damit der Browser die
-  // httpOnly Cookies bei Cross-Origin-Anfragen mitschickt.
   withCredentials: true,
 })
 
-/**
- * Request-Interceptor: CSRF-Token als Header anhängen.
- * Wird bei jeder schreibenden Anfrage (POST, PUT, PATCH, DELETE)
- * vom CsrfValidationFilter im Backend erwartet.
- */
 axiosClient.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+
   const csrfToken = getCsrfToken()
   if (csrfToken) {
     config.headers['X-CSRF-Token'] = csrfToken
@@ -80,10 +61,6 @@ axiosClient.interceptors.request.use((config) => {
   return config
 })
 
-/**
- * Response-Interceptor: bei 401 automatisch den Access Token erneuern
- * und die ursprüngliche Anfrage einmalig wiederholen.
- */
 axiosClient.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
@@ -100,8 +77,6 @@ axiosClient.interceptors.response.use(
         const refreshed = await attemptRefresh()
 
         if (refreshed && originalRequest) {
-          // Nach erfolgreichem Refresh hat das Backend einen neuen
-          // csrfToken-Cookie gesetzt – neu lesen und anhängen.
           const newCsrfToken = getCsrfToken()
           if (newCsrfToken) {
             originalRequest.headers['X-CSRF-Token'] = newCsrfToken
@@ -109,8 +84,6 @@ axiosClient.interceptors.response.use(
           return axiosClient(originalRequest)
         }
 
-        // Refresh fehlgeschlagen → Cookies sind gelöscht (Backend),
-        // unauthorizedHandler informiert den AuthContext.
         unauthorizedHandler?.()
       }
 

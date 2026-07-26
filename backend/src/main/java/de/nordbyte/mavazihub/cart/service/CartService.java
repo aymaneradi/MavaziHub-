@@ -32,11 +32,14 @@ public class CartService {
      */
     @Transactional
     public CartResponse addToCart(UUID customerId, CartItemRequest request) {
+        int requestedQuantity = requirePositiveQuantity(request.getQuantity());
         Product product = productService.getActiveProductEntityOrThrow(request.getProductId());
         ProductVariant variant = null;
 
         if (request.getVariantId() != null) {
             variant = productVariantService.getActiveVariantEntityOrThrow(request.getProductId(), request.getVariantId());
+        } else if (productVariantService.hasActiveVariants(request.getProductId())) {
+            throw new BusinessException("Bitte eine Variante auswählen.");
         }
 
         List<CartItem> existing = cartItemRepository.findByCustomerId(customerId);
@@ -48,19 +51,19 @@ public class CartService {
                 .orElse(null);
 
         if (cartItem != null) {
-            int targetQuantity = cartItem.getQuantity() + request.getQuantity();
+            int targetQuantity = cartItem.getQuantity() + requestedQuantity;
             validateStock(product, variant, targetQuantity);
             cartItem.setQuantity(targetQuantity);
             cartItemRepository.save(cartItem);
         } else {
-            validateStock(product, variant, request.getQuantity());
+            validateStock(product, variant, requestedQuantity);
             CartItem newItem = new CartItem();
             newItem.setCustomerId(customerId);
             newItem.setProductId(request.getProductId());
             newItem.setVariantId(request.getVariantId());
             newItem.setProductName(buildProductName(product, variant));
             newItem.setUnitPrice(product.getPrice());
-            newItem.setQuantity(request.getQuantity());
+            newItem.setQuantity(requestedQuantity);
             cartItemRepository.save(newItem);
         }
 
@@ -103,6 +106,10 @@ public class CartService {
     public CartResponse updateQuantity(UUID customerId, UUID cartItemId, Integer newQuantity) {
         CartItem item = findOwnedCartItem(customerId, cartItemId);
 
+        if (newQuantity == null) {
+            throw new BusinessException("Menge ist Pflicht");
+        }
+
         if (newQuantity <= 0) {
             cartItemRepository.delete(item);
             return getCart(customerId);
@@ -142,6 +149,14 @@ public class CartService {
         }
 
         return item;
+    }
+
+    private int requirePositiveQuantity(Integer quantity) {
+        if (quantity == null || quantity <= 0) {
+            throw new BusinessException("Menge muss größer als 0 sein");
+        }
+
+        return quantity;
     }
 
     private void validateStock(CartItem item, int quantity) {

@@ -1,13 +1,45 @@
-import { FormEvent, useState } from 'react'
+import axios from 'axios'
+import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
+
+type ApiErrorResponse = {
+  message?: string
+}
 
 type LocationState = {
   from?: {
     pathname?: string
   }
   message?: string
+}
+
+function getLoginErrorMessage(error: unknown) {
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) {
+    return 'Die Anmeldung ist gerade nicht möglich.'
+  }
+
+  if (!error.response) {
+    return 'Die Anmeldung ist gerade nicht möglich.'
+  }
+
+  const status = error.response.status
+  const backendMessage = error.response.data?.message?.toLowerCase() ?? ''
+
+  if (
+    backendMessage.includes('deaktiviert') ||
+    backendMessage.includes('disabled') ||
+    backendMessage.includes('locked')
+  ) {
+    return 'Dieses Konto wurde deaktiviert.'
+  }
+
+  if (status === 400 || status === 401) {
+    return 'E-Mail oder Passwort ist nicht korrekt.'
+  }
+
+  return 'Die Anmeldung ist gerade nicht möglich.'
 }
 
 export function LoginPage() {
@@ -34,8 +66,8 @@ export function LoginPage() {
     try {
       await auth.login({ email, password })
       navigate(redirectTo, { replace: true })
-    } catch {
-      setError('Anmeldung fehlgeschlagen. Bitte prüfe E-Mail und Passwort.')
+    } catch (error) {
+      setError(getLoginErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }

@@ -138,6 +138,30 @@ class ReturnRequestServiceTest {
         assertThat(returnRequestService.getReturnById(returnRequest.getId(), UUID.randomUUID())).isEmpty();
     }
 
+    @Test
+    void updateStatusAcceptsKnownReturnStatus() {
+        ReturnRequest returnRequest = returnRequest(UUID.randomUUID(), "REQUESTED");
+        when(returnRequestRepository.findById(returnRequest.getId()))
+                .thenReturn(Optional.of(returnRequest));
+        when(returnRequestRepository.save(any(ReturnRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ReturnRequestResponseDTO result = returnRequestService.updateStatus(returnRequest.getId(), " in_review ");
+
+        assertThat(result.getStatus()).isEqualTo("IN_REVIEW");
+    }
+
+    @Test
+    void updateStatusRejectsUnknownReturnStatus() {
+        ReturnRequest returnRequest = returnRequest(UUID.randomUUID(), "REQUESTED");
+        when(returnRequestRepository.findById(returnRequest.getId()))
+                .thenReturn(Optional.of(returnRequest));
+
+        assertThatThrownBy(() -> returnRequestService.updateStatus(returnRequest.getId(), "DONE"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Unbekannter Retourenstatus");
+    }
+
     private static ReturnRequestCreateDTO request(UUID orderId, UUID orderItemId, int quantity, String reason) {
         ReturnRequestCreateDTO request = new ReturnRequestCreateDTO();
         request.setOrderId(orderId);
@@ -148,6 +172,16 @@ class ReturnRequestServiceTest {
         item.setQuantity(quantity);
         request.setItems(List.of(item));
         return request;
+    }
+
+    private static ReturnRequest returnRequest(UUID customerId, String status) {
+        ReturnRequest returnRequest = new ReturnRequest();
+        returnRequest.setId(UUID.randomUUID());
+        returnRequest.setCustomerId(customerId);
+        returnRequest.setOrderId(UUID.randomUUID());
+        returnRequest.setStatus(status);
+        returnRequest.setCreatedAt(LocalDateTime.now());
+        return returnRequest;
     }
 
     private static Order order(UUID customerId, UUID orderItemId, int quantity) {

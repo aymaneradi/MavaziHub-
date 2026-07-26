@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -62,6 +64,30 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiError> handleDisabledAccount(
+            DisabledException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                "Dieses Konto ist deaktiviert.",
+                request
+        );
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiError> handleLockedAccount(
+            LockedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
+                "Dieses Konto ist gesperrt.",
+                request
+        );
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)

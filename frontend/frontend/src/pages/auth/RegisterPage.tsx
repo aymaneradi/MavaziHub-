@@ -1,7 +1,10 @@
-import { FormEvent, useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/AuthContext'
+
+const phonePattern = /^[+0-9][0-9\s()./-]{6,}$/
+const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
 
 export function RegisterPage() {
   const auth = useAuth()
@@ -27,6 +30,17 @@ export function RegisterPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+
+    if (!phonePattern.test(form.phonenumber.trim())) {
+      setError('Bitte gib eine gültige Telefonnummer ein.')
+      return
+    }
+
+    if (!passwordPattern.test(form.password)) {
+      setError('Das Passwort braucht mindestens 8 Zeichen und eine Zahl.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -76,10 +90,14 @@ export function RegisterPage() {
             <span>Telefon</span>
             <input
               autoComplete="tel"
+              inputMode="tel"
+              pattern="[+0-9][0-9\s()./-]{6,}"
               required
+              title="Bitte gib eine Telefonnummer mit mindestens 7 Zeichen ein."
               value={form.phonenumber}
               onChange={(event) => updateField('phonenumber', event.target.value)}
             />
+            <small className="field-help">Zum Beispiel +49 170 1234567.</small>
           </label>
 
           <label>
@@ -97,12 +115,15 @@ export function RegisterPage() {
             <span>Passwort</span>
             <input
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
+              pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
               required
+              title="Mindestens 8 Zeichen, davon mindestens eine Zahl."
               type="password"
               value={form.password}
               onChange={(event) => updateField('password', event.target.value)}
             />
+            <small className="field-help">Mindestens 8 Zeichen und eine Zahl.</small>
           </label>
 
           <button className="auth-form-wide" disabled={isSubmitting} type="submit">

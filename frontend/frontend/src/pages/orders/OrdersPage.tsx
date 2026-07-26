@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { orderApi } from '../../api'
+import { StatusTimeline } from '../../components/common/StatusTimeline'
 import type { OrderResponse } from '../../types'
 
 const formatCurrency = (value: number) =>
@@ -22,6 +23,18 @@ const statusLabel = (status: string) =>
     DELIVERED: 'Geliefert',
     CANCELLED: 'Storniert',
   })[status] ?? status
+
+const orderTimelineSteps = [
+  {
+    status: 'CREATED',
+    label: 'Bestellt',
+    completeWhen: ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'],
+  },
+  { status: 'PAID', label: 'Bezahlt' },
+  { status: 'PROCESSING', label: 'In Bearbeitung' },
+  { status: 'SHIPPED', label: 'Versendet' },
+  { status: 'DELIVERED', label: 'Geliefert' },
+]
 
 export function OrdersPage() {
   const [orders, setOrders] = useState<OrderResponse[]>([])
@@ -77,6 +90,11 @@ export function OrdersPage() {
                   {formatDate(order.orderDate)} · {order.items.length} Position
                   {order.items.length === 1 ? '' : 'en'}
                 </p>
+                <StatusTimeline
+                  ariaLabel={`Status der Bestellung ${order.id.slice(0, 8)}`}
+                  currentStatus={order.status}
+                  steps={orderTimelineSteps}
+                />
               </div>
               <div className="account-card-meta">
                 <strong>{formatCurrency(order.totalPrice)}</strong>

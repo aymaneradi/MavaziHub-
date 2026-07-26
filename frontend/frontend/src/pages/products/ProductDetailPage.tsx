@@ -12,6 +12,12 @@ type DetailState = {
   mockProduct?: StoreProduct
   variants: ProductVariantResponse[]
   isFallback: boolean
+  variantsLoadFailed?: boolean
+}
+
+type CartFeedback = {
+  tone: 'success' | 'error'
+  text: string
 }
 
 function getAvailabilityLabel(stockQuantity: number) {
@@ -55,8 +61,16 @@ function getAddToCartErrorMessage(error: unknown) {
 
   const status = error.response?.status
 
+  if (!error.response) {
+    return 'Der Warenkorb ist gerade nicht erreichbar. Bitte versuche es gleich noch einmal.'
+  }
+
   if (status === 401) {
     return 'Bitte melde dich an, um den Warenkorb zu nutzen.'
+  }
+
+  if (status === 403) {
+    return 'Deine Sitzung konnte nicht bestätigt werden. Bitte melde dich erneut an.'
   }
 
   if (status === 400) {
@@ -78,7 +92,8 @@ export function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [selectedVariantId, setSelectedVariantId] = useState<number | undefined>()
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
-  const [cartMessage, setCartMessage] = useState('')
+  const [cartFeedback, setCartFeedback] = useState<CartFeedback | null>(null)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -87,15 +102,23 @@ export function ProductDetailPage() {
       setIsLoading(true)
 
       try {
-        const [product, variants] = await Promise.all([
-          productApi.getProduct(productId),
-          productApi.getVariants(productId).catch(() => []),
-        ])
+        const product = await productApi.getProduct(productId)
+        const variantsResult = await productApi.getVariants(productId)
+          .then((variants) => ({ variants, failed: false }))
+          .catch(() => ({ variants: [] as ProductVariantResponse[], failed: true }))
 
         if (isMounted) {
-          setDetail({ product, variants, isFallback: false })
+          setDetail({
+            product,
+            variants: variantsResult.variants,
+            isFallback: false,
+            variantsLoadFailed: variantsResult.failed,
+          })
           setSelectedImageUrl(product.imageUrls?.[0] ?? product.imageUrl ?? null)
-          setSelectedVariantId(variants.find((variant) => variant.stockQuantity > 0)?.id)
+          setSelectedVariantId(
+            variantsResult.variants.find((variant) => variant.stockQuantity > 0)?.id,
+          )
+          setCartFeedback(null)
         }
       } catch {
         const mockProduct = mockProducts.find((product) => product.id === productId)
@@ -148,21 +171,24 @@ export function ProductDetailPage() {
     }
 
     if (detail.variants.length > 0 && !selectedVariantId) {
-      setCartMessage('Bitte zuerst eine Variante auswählen.')
+      setCartFeedback({ tone: 'error', text: 'Bitte zuerst eine Variante auswählen.' })
       return
     }
 
     if (!Number.isFinite(quantity) || quantity < 1) {
-      setCartMessage('Bitte eine gültige Menge eingeben.')
+      setCartFeedback({ tone: 'error', text: 'Bitte eine gültige Menge eingeben.' })
       return
     }
 
     const requestedQuantity = Math.min(quantity, stockQuantity)
 
     if (requestedQuantity < 1) {
-      setCartMessage('Diese Variante ist aktuell nicht verfügbar.')
+      setCartFeedback({ tone: 'error', text: 'Diese Auswahl ist aktuell nicht verfügbar.' })
       return
     }
+
+    setIsAddingToCart(true)
+    setCartFeedback(null)
 
     try {
       await cartApi.addItem({
@@ -170,9 +196,11 @@ export function ProductDetailPage() {
         variantId: selectedVariantId,
         quantity: requestedQuantity,
       })
-      setCartMessage('Produkt wurde in den Warenkorb gelegt.')
+      setCartFeedback({ tone: 'success', text: 'Artikel wurde in den Warenkorb gelegt.' })
     } catch (error) {
-      setCartMessage(getAddToCartErrorMessage(error))
+      setCartFeedback({ tone: 'error', text: getAddToCartErrorMessage(error) })
+    } finally {
+      setIsAddingToCart(false)
     }
   }
 
@@ -201,7 +229,17 @@ export function ProductDetailPage() {
   const stockQuantity = selectedVariant?.stockQuantity ?? product.stockQuantity
   const availabilityLabel = getAvailabilityLabel(stockQuantity)
   const marketingBadge = getMarketingBadge(product, mockProduct)
-  const canAddToCart = stockQuantity > 0 && (variants.length === 0 || selectedVariantId !== undefined)
+  const canAddToCart =
+    !detail.variantsLoadFailed &&
+    stockQuantity > 0 &&
+    (variants.length === 0 || selectedVariantId !== undefined)
+  const addToCartLabel = isAddingToCart
+    ? 'Wird hinzugefügt'
+    : detail.variantsLoadFailed
+      ? 'Auswahl nicht geladen'
+    : stockQuantity <= 0
+      ? 'Nicht verfügbar'
+      : 'In den Warenkorb'
   const productImages = [
     ...(product.imageUrl ? [product.imageUrl] : []),
     ...(product.imageUrls ?? []),
@@ -220,7 +258,12 @@ export function ProductDetailPage() {
 
         <section className="product-detail-layout">
           <div className="product-detail-media">
-            <ProductVisual imageUrl={activeImageUrl} palette={palette} label={product.name} />
+            <ProductVisual
+              imageUrl={activeImageUrl}
+              palette={palette}
+              label={product.name}
+              caption={product.categoryName}
+            />
             {productImages.length > 1 && (
               <div className="product-gallery-thumbs" aria-label="Produktbilder">
                 {productImages.map((imageUrl, index) => (
@@ -231,7 +274,12 @@ export function ProductDetailPage() {
                     onClick={() => setSelectedImageUrl(imageUrl)}
                     aria-label={`Produktbild ${index + 1} anzeigen`}
                   >
-                    <ProductVisual imageUrl={imageUrl} palette={palette} label={`${product.name} ${index + 1}`} />
+                    <ProductVisual
+                      imageUrl={imageUrl}
+                      palette={palette}
+                      label={`${product.name} ${index + 1}`}
+                      caption={product.categoryName}
+                    />
                   </button>
                 ))}
               </div>
@@ -271,10 +319,16 @@ export function ProductDetailPage() {
                   <button
                     key={variant.id}
                     className={selectedVariantId === variant.id ? 'active' : undefined}
+                    disabled={!variant.active || variant.stockQuantity <= 0}
                     type="button"
-                    onClick={() => setSelectedVariantId(variant.id)}
+                    onClick={() => {
+                      setSelectedVariantId(variant.id)
+                      setQuantity(1)
+                      setCartFeedback(null)
+                    }}
                   >
                     {variant.variantLabel}
+                    {(!variant.active || variant.stockQuantity <= 0) && ' - ausverkauft'}
                   </button>
                 ))}
               </div>
@@ -285,6 +339,7 @@ export function ProductDetailPage() {
             <label>
               <span>Menge</span>
               <input
+                inputMode="numeric"
                 min="1"
                 max={Math.max(stockQuantity, 1)}
                 type="number"
@@ -292,16 +347,27 @@ export function ProductDetailPage() {
                 onChange={(event) => {
                   const nextQuantity = Number(event.target.value)
                   const maxQuantity = Math.max(stockQuantity, 1)
+                  setCartFeedback(null)
                   setQuantity(Number.isFinite(nextQuantity) ? Math.min(Math.max(1, nextQuantity), maxQuantity) : 1)
                 }}
               />
             </label>
-            <button type="button" disabled={!canAddToCart} onClick={handleAddToCart}>
-              In den Warenkorb
+            <button type="button" disabled={!canAddToCart || isAddingToCart} onClick={handleAddToCart}>
+              {addToCartLabel}
             </button>
           </div>
 
-          {cartMessage && <p className="cart-feedback">{cartMessage}</p>}
+          {cartFeedback && (
+            <p className={`cart-feedback ${cartFeedback.tone}`} role={cartFeedback.tone === 'error' ? 'alert' : 'status'}>
+              <span>{cartFeedback.text}</span>
+              {cartFeedback.tone === 'success' && <Link to="/cart">Zum Warenkorb</Link>}
+            </p>
+          )}
+          {detail.variantsLoadFailed && (
+            <p className="cart-feedback error" role="alert">
+              Varianten konnten gerade nicht geladen werden. Bitte öffne das Produkt erneut.
+            </p>
+          )}
           {isFallback && <p className="fallback-note">Produktdaten sind momentan offline verfügbar.</p>}
         </div>
       </section>

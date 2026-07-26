@@ -50,6 +50,11 @@ public class ProductVariantService {
                 .toList();
     }
 
+    public boolean hasActiveVariants(Long productId) {
+        productService.getActiveProductEntityOrThrow(productId);
+        return productVariantRepository.existsByProductIdAndActiveTrue(productId);
+    }
+
     /**
      * Legt eine neue Variante für ein Produkt an.
      */

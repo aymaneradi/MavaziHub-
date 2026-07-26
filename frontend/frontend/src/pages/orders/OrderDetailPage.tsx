@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { orderApi } from '../../api'
+import { StatusTimeline } from '../../components/common/StatusTimeline'
 import type { OrderResponse, UUID } from '../../types'
 
 const formatCurrency = (value: number) =>
@@ -22,6 +23,18 @@ const statusLabel = (status: string) =>
     DELIVERED: 'Geliefert',
     CANCELLED: 'Storniert',
   })[status] ?? status
+
+const orderTimelineSteps = [
+  {
+    status: 'CREATED',
+    label: 'Bestellt',
+    completeWhen: ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED'],
+  },
+  { status: 'PAID', label: 'Bezahlt' },
+  { status: 'PROCESSING', label: 'In Bearbeitung' },
+  { status: 'SHIPPED', label: 'Versendet' },
+  { status: 'DELIVERED', label: 'Geliefert' },
+]
 
 export function OrderDetailPage() {
   const { id } = useParams()
@@ -73,6 +86,12 @@ export function OrderDetailPage() {
               <span className="status-pill">{statusLabel(order.status)}</span>
               <span className="status-pill muted">Zahlung: {statusLabel(order.paymentStatus)}</span>
             </div>
+
+            <StatusTimeline
+              ariaLabel="Status der Bestellung"
+              currentStatus={order.status}
+              steps={orderTimelineSteps}
+            />
 
             <dl className="order-detail-facts">
               <div>

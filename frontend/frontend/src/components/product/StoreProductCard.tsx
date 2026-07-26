@@ -29,11 +29,20 @@ function getTag(product: ProductResponse | StoreProduct) {
   return badges[product.id % badges.length]
 }
 
+function getPrimaryImageUrl(product: ProductResponse | StoreProduct) {
+  return product.imageUrl || product.imageUrls?.[0] || null
+}
+
 export function StoreProductCard({ product }: StoreProductCardProps) {
   return (
     <article className="store-product-card">
       <Link to={`/products/${product.id}`} aria-label={`${product.name} ansehen`}>
-        <ProductVisual imageUrl={product.imageUrl} palette={getPalette(product)} label={product.name} />
+        <ProductVisual
+          imageUrl={getPrimaryImageUrl(product)}
+          palette={getPalette(product)}
+          label={product.name}
+          caption={product.categoryName}
+        />
       </Link>
       <div className="store-product-meta">
         <span>{getTag(product)}</span>

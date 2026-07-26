@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Component
-public class CrsfValidationFilter extends OncePerRequestFilter {
+public class CsrfValidationFilter extends OncePerRequestFilter {
 
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
 

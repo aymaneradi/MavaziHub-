@@ -12,12 +12,14 @@ export function AdminCategoriesPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
 
   async function loadCategories() {
     try {
       const response = await adminApi.getCategories()
       setCategories(response)
     } catch {
+      setMessageTone('error')
       setMessage('Kategorien konnten nicht geladen werden.')
     } finally {
       setIsLoading(false)
@@ -59,8 +61,11 @@ export function AdminCategoriesPage() {
           ? current.map((category) => (category.id === saved.id ? saved : category))
           : [...current, saved].sort((a, b) => a.name.localeCompare(b.name)),
       )
+      setMessageTone('success')
+      setMessage(editingId ? 'Kategorie wurde aktualisiert.' : 'Kategorie wurde angelegt.')
       resetForm()
     } catch {
+      setMessageTone('error')
       setMessage('Kategorie konnte nicht gespeichert werden.')
     }
   }
@@ -75,7 +80,7 @@ export function AdminCategoriesPage() {
         </div>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <p className="admin-system-note">
         Kategorien können angelegt und bei Bedarf angepasst werden.

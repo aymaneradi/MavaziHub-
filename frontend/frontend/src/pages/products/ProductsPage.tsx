@@ -16,12 +16,25 @@ export function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState<Array<ProductResponse | StoreProduct>>(mockProducts)
   const [categories, setCategories] = useState<CategoryResponse[]>(mockCategories)
-  const [selectedCategoryId, setSelectedCategoryId] = useState(
-      Number(searchParams.get('category') ?? 0),
-  )
-  const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const [isFallback, setIsFallback] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const search = searchParams.get('search') ?? ''
+  const categoryParam = Number(searchParams.get('category') ?? 0)
+  const selectedCategoryId = Number.isFinite(categoryParam) ? categoryParam : 0
+
+  function updateFilters(categoryId: number, searchValue: string) {
+    const nextParams = new URLSearchParams()
+
+    if (categoryId > 0) {
+      nextParams.set('category', String(categoryId))
+    }
+
+    if (searchValue.trim()) {
+      nextParams.set('search', searchValue.trim())
+    }
+
+    setSearchParams(nextParams, { replace: true })
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -63,20 +76,6 @@ export function ProductsPage() {
       isMounted = false
     }
   }, [])
-
-  useEffect(() => {
-    const nextParams = new URLSearchParams()
-
-    if (selectedCategoryId > 0) {
-      nextParams.set('category', String(selectedCategoryId))
-    }
-
-    if (search.trim()) {
-      nextParams.set('search', search.trim())
-    }
-
-    setSearchParams(nextParams, { replace: true })
-  }, [search, selectedCategoryId, setSearchParams])
 
   const visibleProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -127,7 +126,7 @@ export function ProductsPage() {
                   key={category.id}
                   className={selectedCategoryId === category.id ? 'active' : undefined}
                   type="button"
-                  onClick={() => setSelectedCategoryId(category.id)}
+                  onClick={() => updateFilters(category.id, search)}
               >
                 {category.name}
               </button>
@@ -141,7 +140,7 @@ export function ProductsPage() {
                 type="search"
                 placeholder="Ankara, Kente, Tasche..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => updateFilters(selectedCategoryId, event.target.value)}
             />
           </label>
           <p>
@@ -151,13 +150,26 @@ export function ProductsPage() {
           </p>
         </section>
 
-        <section className="store-product-grid" aria-label="Produktübersicht">
-          {visibleProducts.map((product) => (
-              <StoreProductCard key={product.id} product={product} />
-          ))}
-        </section>
+        {isLoading ? (
+          <section className="store-product-grid" aria-label="Produkte werden geladen">
+            {Array.from({ length: 8 }, (_, index) => (
+              <article className="store-product-card product-card-skeleton" key={index} aria-hidden="true">
+                <span className="skeleton-box product-card-skeleton-image" />
+                <span className="skeleton-line wide" />
+                <span className="skeleton-line" />
+                <span className="skeleton-line short" />
+              </article>
+            ))}
+          </section>
+        ) : (
+          <section className="store-product-grid" aria-label="Produktübersicht">
+            {visibleProducts.map((product) => (
+                <StoreProductCard key={product.id} product={product} />
+            ))}
+          </section>
+        )}
 
-        {visibleProducts.length === 0 && (
+        {!isLoading && visibleProducts.length === 0 && (
             <section className="empty-store-state">
               <h2>Keine Produkte gefunden</h2>
               <p>Bitte ändere Suche oder Kategorie.</p>

@@ -28,10 +28,6 @@ public class ReturnRequest {
     @Column(length = 500)
     private String reason;
 
-    /**
-     * Status: REQUESTED | APPROVED | REJECTED | COMPLETED
-     * Initialer Status laut Pflichtenheft (UC-RS-01): "beantragt" (REQUESTED)
-     */
     @Column(nullable = false, length = 50)
     private String status;
 

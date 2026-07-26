@@ -4,8 +4,9 @@ import { adminApi } from '../../api'
 import { useAuth } from '../../auth/AuthContext'
 import type { OrderResponse } from '../../types'
 
-const orderStatuses = ['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+const orderStatuses = ['CREATED', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 const orderStatusLabels: Record<string, string> = {
+  CREATED: 'Bestellt',
   PAID: 'Bezahlt',
   PROCESSING: 'In Bearbeitung',
   SHIPPED: 'Versendet',
@@ -27,6 +28,7 @@ export function AdminOrdersPage() {
   const [statusDrafts, setStatusDrafts] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
   const areaLabel = auth.hasAnyRole(['ROLE_ADMIN']) ? 'Adminbereich' : 'Mitarbeiterbereich'
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export function AdminOrdersPage() {
         setOrders(response)
         setStatusDrafts(Object.fromEntries(response.map((order) => [order.id, order.status])))
       } catch {
+        setMessageTone('error')
         setMessage('Bestellungen konnten nicht geladen werden.')
       } finally {
         setIsLoading(false)
@@ -51,7 +54,10 @@ export function AdminOrdersPage() {
     try {
       const updated = await adminApi.updateOrderStatus(orderId, statusDrafts[orderId])
       setOrders((current) => current.map((order) => (order.id === orderId ? updated : order)))
+      setMessageTone('success')
+      setMessage('Bestellstatus wurde gespeichert.')
     } catch {
+      setMessageTone('error')
       setMessage('Bestellstatus konnte nicht gespeichert werden.')
     }
   }
@@ -66,7 +72,7 @@ export function AdminOrdersPage() {
         </div>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <div className="admin-panel">
         {isLoading ? (

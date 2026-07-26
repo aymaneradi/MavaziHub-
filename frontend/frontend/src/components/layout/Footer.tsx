@@ -1,6 +1,22 @@
+import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 export function Footer() {
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterMessage, setNewsletterMessage] = useState('')
+
+  function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setNewsletterMessage('')
+
+    if (!newsletterEmail.trim()) {
+      return
+    }
+
+    setNewsletterEmail('')
+    setNewsletterMessage('Danke, wir haben deine Anmeldung vorgemerkt.')
+  }
+
   return (
     <footer className="site-footer">
       <div className="footer-highlights">
@@ -35,10 +51,25 @@ export function Footer() {
         <div className="footer-newsletter">
           <strong>Newsletter</strong>
           <p>Neue Stoffe, Angebote und Kollektionen direkt in dein Postfach.</p>
-          <form>
-            <input aria-label="E-Mail für Newsletter" placeholder="E-Mail-Adresse" type="email" />
-            <button type="button">Abonnieren</button>
+          <form onSubmit={handleNewsletterSubmit}>
+            <input
+              aria-label="E-Mail für Newsletter"
+              placeholder="E-Mail-Adresse"
+              required
+              type="email"
+              value={newsletterEmail}
+              onChange={(event) => {
+                setNewsletterEmail(event.target.value)
+                setNewsletterMessage('')
+              }}
+            />
+            <button type="submit">Abonnieren</button>
           </form>
+          {newsletterMessage && (
+            <p className="footer-newsletter-message" role="status">
+              {newsletterMessage}
+            </p>
+          )}
         </div>
       </div>
 

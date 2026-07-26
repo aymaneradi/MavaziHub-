@@ -45,6 +45,10 @@ export type CreateProductRequest = {
 
 export type UpdateProductRequest = CreateProductRequest
 
+export type ProductImageUploadResponse = {
+  imageUrl: string
+}
+
 export type ProductPalette = 'sunset' | 'gold' | 'indigo' | 'leaf'
 
 export type FeaturedProduct = {

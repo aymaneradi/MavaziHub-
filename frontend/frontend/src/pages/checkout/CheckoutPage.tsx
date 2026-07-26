@@ -1,14 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { cartApi } from '../../api'
-import type { FormEvent } from 'react'
 import type { CartResponse, OrderResponse } from '../../types'
+
+type ApiErrorResponse = {
+  message?: string
+}
 
 const formatCurrency = (value: number) =>
   value.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
 
 const checkoutSteps = ['Warenkorb', 'Lieferadresse', 'Zahlungsart', 'Bestätigung']
+const zipCodePattern = /^\d{5}$/
 const orderStatusLabel = (status: string) =>
   ({
     CREATED: 'Angelegt',
@@ -18,6 +23,60 @@ const orderStatusLabel = (status: string) =>
     DELIVERED: 'Geliefert',
     CANCELLED: 'Storniert',
   })[status] ?? status
+
+function getCartLoadErrorMessage(error: unknown) {
+  if (!axios.isAxiosError(error)) {
+    return 'Der Warenkorb konnte gerade nicht geladen werden.'
+  }
+
+  if (!error.response) {
+    return 'Der Warenkorb ist gerade nicht erreichbar. Bitte versuche es gleich noch einmal.'
+  }
+
+  if (error.response.status === 401) {
+    return 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.'
+  }
+
+  return 'Der Warenkorb konnte gerade nicht geladen werden.'
+}
+
+function getCheckoutErrorMessage(error: unknown) {
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) {
+    return 'Die Bestellung ist gerade nicht möglich. Bitte versuche es gleich noch einmal.'
+  }
+
+  if (!error.response) {
+    return 'Die Bestellung ist gerade nicht möglich. Bitte versuche es gleich noch einmal.'
+  }
+
+  const status = error.response.status
+  const backendMessage = error.response.data?.message?.toLowerCase() ?? ''
+
+  if (status === 401) {
+    return 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.'
+  }
+
+  if (backendMessage.includes('warenkorb') && (backendMessage.includes('leer') || backendMessage.includes('empty'))) {
+    return 'Dein Warenkorb ist leer.'
+  }
+
+  if (
+    status === 409 ||
+    backendMessage.includes('lagerbestand') ||
+    backendMessage.includes('nicht genug') ||
+    backendMessage.includes('nicht mehr verfügbar') ||
+    backendMessage.includes('not enough') ||
+    backendMessage.includes('unavailable')
+  ) {
+    return 'Ein Produkt ist in der gewünschten Menge nicht mehr verfügbar.'
+  }
+
+  if (status === 400) {
+    return 'Bitte prüfe deine Angaben für die Bestellung.'
+  }
+
+  return 'Die Bestellung ist gerade nicht möglich. Bitte versuche es gleich noch einmal.'
+}
 
 export function CheckoutPage() {
   const [step, setStep] = useState(0)
@@ -38,8 +97,8 @@ export function CheckoutPage() {
       try {
         const response = await cartApi.getCart()
         setCart(response)
-      } catch {
-        setMessage('Der Warenkorb konnte gerade nicht geladen werden.')
+      } catch (error) {
+        setMessage(getCartLoadErrorMessage(error))
         setCart({ items: [], totalPrice: 0 })
       } finally {
         setIsLoading(false)
@@ -52,9 +111,9 @@ export function CheckoutPage() {
   const items = cart?.items ?? []
   const itemCount = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
   const canContinueAddress =
-    address.street.trim().length > 0 &&
-    address.zipCode.trim().length > 0 &&
-    address.city.trim().length > 0
+    address.street.trim().length >= 3 &&
+    zipCodePattern.test(address.zipCode.trim()) &&
+    address.city.trim().length >= 2
 
   function nextStep() {
     setStep((currentStep) => Math.min(currentStep + 1, checkoutSteps.length - 1))
@@ -73,8 +132,8 @@ export function CheckoutPage() {
       const response = await cartApi.checkout(address)
       setOrder(response)
       setCart({ items: [], totalPrice: 0 })
-    } catch {
-      setMessage('Die Bestellung konnte nicht abgeschlossen werden.')
+    } catch (error) {
+      setMessage(getCheckoutErrorMessage(error))
     } finally {
       setIsSubmitting(false)
     }
@@ -83,8 +142,10 @@ export function CheckoutPage() {
   if (isLoading) {
     return (
       <section className="checkout-page">
-        <div className="commerce-empty">
-          <h1>Kasse wird geladen</h1>
+        <div className="checkout-loading-panel" aria-label="Kasse wird geladen">
+          <span className="skeleton-line wide" />
+          <span className="skeleton-line" />
+          <span className="skeleton-box" />
         </div>
       </section>
     )
@@ -177,6 +238,8 @@ export function CheckoutPage() {
                 <label className="checkout-wide">
                   <span>Straße und Hausnummer</span>
                   <input
+                    autoComplete="street-address"
+                    minLength={3}
                     required
                     value={address.street}
                     onChange={(event) =>
@@ -187,16 +250,26 @@ export function CheckoutPage() {
                 <label>
                   <span>PLZ</span>
                   <input
+                    autoComplete="postal-code"
+                    inputMode="numeric"
+                    maxLength={5}
+                    pattern="[0-9]{5}"
                     required
                     value={address.zipCode}
                     onChange={(event) =>
-                      setAddress((current) => ({ ...current, zipCode: event.target.value }))
+                      setAddress((current) => ({
+                        ...current,
+                        zipCode: event.target.value.replace(/\D/g, '').slice(0, 5),
+                      }))
                     }
                   />
+                  <small className="field-help">Bitte 5 Ziffern eingeben.</small>
                 </label>
                 <label>
                   <span>Stadt</span>
                   <input
+                    autoComplete="address-level2"
+                    minLength={2}
                     required
                     value={address.city}
                     onChange={(event) =>

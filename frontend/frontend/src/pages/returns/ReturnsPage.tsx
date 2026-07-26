@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { returnApi } from '../../api'
+import { StatusTimeline } from '../../components/common/StatusTimeline'
 import type { ReturnRequestResponseDTO } from '../../types'
 
 const formatDate = (value: string) =>
@@ -13,11 +14,29 @@ const formatDate = (value: string) =>
 const returnStatusLabel = (status: string) =>
   ({
     REQUESTED: 'Beantragt',
+    IN_REVIEW: 'In Prüfung',
     APPROVED: 'Genehmigt',
     REJECTED: 'Abgelehnt',
     RECEIVED: 'Eingegangen',
     REFUNDED: 'Erstattet',
   })[status] ?? status
+
+const activeReturnSteps = [
+  {
+    status: 'REQUESTED',
+    label: 'Beantragt',
+    completeWhen: ['IN_REVIEW', 'APPROVED', 'RECEIVED', 'REFUNDED', 'COMPLETED'],
+  },
+  { status: 'IN_REVIEW', label: 'In Prüfung' },
+  { status: 'APPROVED', label: 'Genehmigt' },
+  { status: 'REFUNDED', label: 'Erstattet' },
+]
+
+const rejectedReturnSteps = [
+  { status: 'REQUESTED', label: 'Beantragt', completeWhen: ['IN_REVIEW', 'REJECTED'] },
+  { status: 'IN_REVIEW', label: 'In Prüfung' },
+  { status: 'REJECTED', label: 'Abgelehnt' },
+]
 
 export function ReturnsPage() {
   const [returns, setReturns] = useState<ReturnRequestResponseDTO[]>([])
@@ -73,6 +92,13 @@ export function ReturnsPage() {
                   Bestellung #{returnRequest.orderId.slice(0, 8)} ·{' '}
                   {formatDate(returnRequest.createdAt)}
                 </p>
+                <StatusTimeline
+                  ariaLabel={`Status der Rücksendung ${returnRequest.id.slice(0, 8)}`}
+                  currentStatus={returnRequest.status}
+                  steps={
+                    returnRequest.status === 'REJECTED' ? rejectedReturnSteps : activeReturnSteps
+                  }
+                />
                 {returnRequest.reason && <p>{returnRequest.reason}</p>}
               </div>
               <div className="account-card-meta">

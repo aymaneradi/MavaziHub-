@@ -31,7 +31,9 @@ export function AdminProductFormPage() {
   const [form, setForm] = useState(emptyForm)
   const [isLoading, setIsLoading] = useState(Boolean(isEditMode))
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingImages, setIsUploadingImages] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('error')
 
   useEffect(() => {
     async function loadCategories() {
@@ -43,6 +45,7 @@ export function AdminProductFormPage() {
           categoryId: current.categoryId || response[0]?.id.toString() || '',
         }))
       } catch {
+        setMessageTone('error')
         setMessage('Kategorien konnten nicht geladen werden.')
       }
     }
@@ -66,6 +69,7 @@ export function AdminProductFormPage() {
           categoryId: product.categoryId.toString(),
         })
       } catch {
+        setMessageTone('error')
         setMessage('Produkt konnte nicht geladen werden.')
       } finally {
         setIsLoading(false)
@@ -104,11 +108,66 @@ export function AdminProductFormPage() {
         await adminApi.createProduct(request)
       }
 
-      navigate('/admin/products')
+      navigate('/admin/products', {
+        state: { message: isEditMode ? 'Produkt wurde aktualisiert.' : 'Produkt wurde angelegt.' },
+      })
     } catch {
+      setMessageTone('error')
       setMessage('Produkt konnte nicht gespeichert werden.')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  function appendImageUrls(uploadedUrls: string[]) {
+    setForm((current) => {
+      const existingAdditionalUrls = splitImageUrls(current.imageUrls)
+      const nextAdditionalUrls = [...existingAdditionalUrls]
+      let nextPrimaryUrl = current.imageUrl.trim()
+
+      uploadedUrls.forEach((imageUrl) => {
+        if (!nextPrimaryUrl) {
+          nextPrimaryUrl = imageUrl
+          return
+        }
+
+        if (nextPrimaryUrl !== imageUrl && !nextAdditionalUrls.includes(imageUrl)) {
+          nextAdditionalUrls.push(imageUrl)
+        }
+      })
+
+      return {
+        ...current,
+        imageUrl: nextPrimaryUrl,
+        imageUrls: nextAdditionalUrls.join('\n'),
+      }
+    })
+  }
+
+  async function uploadImages(files: FileList | null) {
+    if (!files || files.length === 0) {
+      return
+    }
+
+    setIsUploadingImages(true)
+    setMessage('')
+
+    try {
+      const uploadedImages = await Promise.all(
+        Array.from(files).map((file) => adminApi.uploadProductImage(file)),
+      )
+      appendImageUrls(uploadedImages.map((image) => image.imageUrl))
+      setMessageTone('success')
+      setMessage(
+        uploadedImages.length === 1
+          ? 'Bild wurde hochgeladen.'
+          : `${uploadedImages.length} Bilder wurden hochgeladen.`,
+      )
+    } catch {
+      setMessageTone('error')
+      setMessage('Bild konnte nicht hochgeladen werden. Bitte nutze JPG, PNG, WebP oder GIF.')
+    } finally {
+      setIsUploadingImages(false)
     }
   }
 
@@ -125,7 +184,7 @@ export function AdminProductFormPage() {
         </Link>
       </div>
 
-      {message && <p className="admin-message" role="status">{message}</p>}
+      {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <form className="admin-panel admin-form" onSubmit={submitProduct}>
         {isLoading ? (
@@ -182,7 +241,23 @@ export function AdminProductFormPage() {
             </label>
 
             <label className="admin-wide">
-              <span>Hauptbild-URL optional</span>
+              <span>Bilder vom Computer hochladen</span>
+              <input
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                type="file"
+                onChange={(event) => {
+                  void uploadImages(event.target.files)
+                  event.target.value = ''
+                }}
+              />
+              <small className="field-help">
+                Die hochgeladenen Bilder werden automatisch als Bildadressen übernommen.
+              </small>
+            </label>
+
+            <label className="admin-wide">
+              <span>Hauptbild-Adresse optional</span>
               <input
                 value={form.imageUrl}
                 onChange={(event) =>
@@ -192,7 +267,7 @@ export function AdminProductFormPage() {
             </label>
 
             <label className="admin-wide">
-              <span>Weitere Bild-URLs optional</span>
+              <span>Weitere Bildadressen optional</span>
               <textarea
                 rows={4}
                 value={form.imageUrls}
@@ -214,8 +289,8 @@ export function AdminProductFormPage() {
             </label>
 
             <div className="admin-form-actions admin-wide">
-              <button disabled={!canSave || isSaving} type="submit">
-                {isSaving ? 'Speichern läuft' : 'Speichern'}
+              <button disabled={!canSave || isSaving || isUploadingImages} type="submit">
+                {isSaving ? 'Speichern läuft' : isUploadingImages ? 'Bilder werden hochgeladen' : 'Speichern'}
               </button>
               <Link to="/admin/products">Abbrechen</Link>
             </div>
