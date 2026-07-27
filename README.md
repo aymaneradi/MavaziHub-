@@ -7,7 +7,7 @@ MavaziHub ist eine webbasierte B2C-E-Commerce-Plattform für traditionelle und m
 ```txt
 backend/            Spring Boot REST API
 frontend/frontend/  React + Vite Frontend
-docker-compose.yml  lokale PostgreSQL-Datenbank
+docker-compose.yml  PostgreSQL, Backend und Frontend als lokale Container
 .env.example        Beispiel-Konfiguration für Backend/Docker
 ```
 
@@ -15,10 +15,10 @@ Hinweis: Die aktuelle Vite-App liegt in `frontend/frontend/`.
 
 ## Voraussetzungen
 
-- Java 17 oder neuer
-- Maven oder der Maven Wrapper aus dem Backend
-- Node.js und npm
-- Docker Desktop für PostgreSQL
+- Docker Desktop für den kompletten Start mit Docker Compose
+- Java 17 oder neuer für lokale Backend-Entwicklung
+- Maven oder der Maven Wrapper aus dem Backend für lokale Backend-Entwicklung
+- Node.js und npm für lokale Frontend-Entwicklung
 
 ## Env-Variablen
 
@@ -62,25 +62,63 @@ Frontend-Variable:
 VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-Vite gibt nur Variablen an den Browser weiter, die mit `VITE_` beginnen. Deshalb steht die API-Adresse im Frontend in `VITE_API_BASE_URL`.
+Vite gibt nur Variablen an den Browser weiter, die mit `VITE_` beginnen. Deshalb steht die API-Adresse im Frontend in `VITE_API_BASE_URL`. Für Docker Compose bleibt der Wert `/api`, weil Nginx API- und Medienanfragen intern an das Backend weiterleitet.
 
-## Datenbank starten
+## Komplette Anwendung mit Docker Compose starten
 
 Im Projektwurzelordner:
 
 ```powershell
-docker compose up -d
+docker compose up --build
 ```
 
-Prüfen, ob PostgreSQL läuft:
+Danach im Browser öffnen:
+
+```txt
+http://localhost:5173
+```
+
+Dabei laufen drei Container:
+
+```txt
+postgres  PostgreSQL-Datenbank
+backend   Spring Boot REST API
+frontend  gebautes React-Frontend über Nginx
+```
+
+Prüfen, ob alle Container laufen:
 
 ```powershell
 docker compose ps
 ```
 
-Die Datenbank läuft lokal auf Port `5433`, damit sie nicht mit einer eventuell lokal installierten PostgreSQL-Instanz auf `5432` kollidiert.
+Backend prüfen:
 
-## Backend starten
+```txt
+http://localhost:8080/api/health
+http://localhost:8080/api/health/db
+http://localhost:8080/swagger-ui/index.html
+```
+
+Die Datenbank läuft im Docker-Netz intern auf `postgres:5432`. Auf deinem Rechner ist sie weiter über `localhost:5433` erreichbar, damit sie nicht mit einer eventuell lokal installierten PostgreSQL-Instanz auf `5432` kollidiert.
+
+Hochgeladene Produktbilder werden im Docker-Volume `mavazihub_media` gespeichert und bleiben dadurch auch nach einem Container-Neustart erhalten.
+
+Container wieder stoppen:
+
+```powershell
+docker compose down
+```
+
+## Lokale Entwicklung
+
+Für Entwicklung kann weiterhin nur PostgreSQL über Docker Compose gestartet werden:
+
+```powershell
+docker compose up -d postgres
+```
+
+Danach Backend lokal starten:
 
 Im Backend-Ordner:
 
@@ -112,6 +150,24 @@ Erwartung:
 Swagger UI      zeigt die dokumentierten REST-Endpunkte
 ```
 
+Frontend lokal starten:
+
+Im Frontend-Ordner:
+
+```powershell
+cd frontend\frontend
+npm install
+npm run dev
+```
+
+Danach im Browser öffnen:
+
+```txt
+http://localhost:5173
+```
+
+Für echte Login-, Warenkorb-, Checkout-, Bestell- und Adminfunktionen müssen Datenbank und Backend laufen. Einige Shopseiten haben Fallback-Daten, aber der Kernprozess braucht die API.
+
 ## Produktbilder hochladen
 
 Admins und Mitarbeiter können im Adminbereich lokale Produktbilder hochladen. Das Backend speichert die Dateien im lokalen Medienordner und liefert sie über `/media/products/...` aus.
@@ -129,24 +185,6 @@ Optional kann der Speicherort gesetzt werden:
 ```powershell
 $env:MAVAZIHUB_MEDIA_DIR="C:\dev\mavazihub-media"
 ```
-
-## Frontend starten
-
-Im Frontend-Ordner:
-
-```powershell
-cd frontend\frontend
-npm install
-npm run dev
-```
-
-Danach im Browser öffnen:
-
-```txt
-http://localhost:5173
-```
-
-Für echte Login-, Warenkorb-, Checkout-, Bestell- und Adminfunktionen müssen Datenbank und Backend laufen. Einige Shopseiten haben Fallback-Daten, aber der Kernprozess braucht die API.
 
 ## Rollen und Testzugänge
 

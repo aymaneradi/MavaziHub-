@@ -75,7 +75,7 @@ export function AdminProductsPage() {
       {message && <p className={`admin-message ${messageTone}`} role="status">{message}</p>}
 
       <p className="admin-system-note">
-        Bilder werden aktuell über Bildadressen gepflegt. Produkte können bei Bedarf deaktiviert werden.
+        Bilder können vom Computer hochgeladen oder über Bildadressen ergänzt werden. Produkte können bei Bedarf deaktiviert werden.
       </p>
 
       <div className="admin-panel">
