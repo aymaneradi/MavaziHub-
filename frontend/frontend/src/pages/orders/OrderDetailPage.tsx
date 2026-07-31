@@ -22,6 +22,7 @@ const statusLabel = (status: string) =>
     SHIPPED: 'Versendet',
     DELIVERED: 'Geliefert',
     CANCELLED: 'Storniert',
+    SIMULATED_PAID: 'Bestätigt',
   })[status] ?? status
 
 const orderTimelineSteps = [

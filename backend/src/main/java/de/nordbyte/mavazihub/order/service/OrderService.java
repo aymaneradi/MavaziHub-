@@ -45,10 +45,8 @@ public class OrderService {
     @Transactional
     public OrderResponse processOrder(UUID customerId, OrderRequest request) {
 
-        // SCHRITT 1: Warenkorb laden
         List<CartItem> cartItems = cartItemRepository.findByCustomerId(customerId);
 
-        // SCHRITT 2: Warenkorb prüfen
         if (cartItems.isEmpty()) {
             throw new BusinessException("Warenkorb ist leer.");
         }
@@ -62,17 +60,15 @@ public class OrderService {
         order.setCity(request.getCity());
         order.setOrderDate(LocalDateTime.now());
 
-        // Sicherstellen, dass die Liste im Entity initialisiert ist, falls nicht im Konstruktor geschehen
         if (order.getItems() == null) {
             order.setItems(new ArrayList<>());
         }
 
-        // SCHRITT 4: OrderItems aus CartItems erstellen (Snapshot ADR-05)
         BigDecimal total = BigDecimal.ZERO;
 
         for (CartItem cartItem : cartItems) {
             OrderItem item = new OrderItem();
-            item.setOrder(order); // Wichtig für JPA Fremdschlüssel-Mapping!
+            item.setOrder(order);
             item.setProductId(cartItem.getProductId());
             item.setVariantId(cartItem.getVariantId());
             item.setProductName(cartItem.getProductName());
@@ -90,20 +86,17 @@ public class OrderService {
 
         order.setTotalPrice(total);
 
-        // SCHRITT 5: Zahlungsstatus simulieren (V1.0)
-        order.setStatus("PAID"); // Status-Update auf bezahlt wechseln, wenn Simulation erfolgreich
+        order.setStatus("PAID");
         order.setPaymentStatus("SIMULATED_PAID");
 
-        // Speichern (Kaskadiert automatisch in order_items dank CascadeType.ALL)
         Order saved = orderRepository.save(order);
 
-        // SCHRITT 6: Warenkorb leeren
         cartItemRepository.deleteByCustomerId(customerId);
 
         return toResponse(saved);
     }
 
-    @Transactional(readOnly = true) // Performance-Optimierung für Lesezugriffe
+    @Transactional(readOnly = true)
     public Optional<OrderResponse> getOrderById(UUID id) {
         return orderRepository.findById(id).map(this::toResponse);
     }
